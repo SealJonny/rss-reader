@@ -18,8 +18,12 @@
   },
   "homepage": "https://github.com/SealJonny/rss-reader#readme",
   "devDependencies": {
+    "@types/jsdom": "^21.1.7",
     "@types/node": "^22.13.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "jsdom": "^26.0.0"
   }
 }

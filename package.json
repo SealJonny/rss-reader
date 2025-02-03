@@ -1,0 +1,22 @@
+{
+  "name": "rss-reader",
+  "version": "1.0.0",
+  "description": "",
+  "main": "bin/rss-reader.js",
+  "bin": {
+    "rss-reader": "bin/rss-reader.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SealJonny/rss-reader.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SealJonny/rss-reader/issues"
+  },
+  "homepage": "https://github.com/SealJonny/rss-reader#readme"
+}

@@ -1,7 +1,7 @@
 import { JSDOM } from "jsdom";
 import { NewsItem } from "../interfaces/news-item";
 
-async function fetchRss(url: string): Promise<NewsItem[] | null> {
+export async function fetchRss(url: string): Promise<NewsItem[]> {
     try {
         const response = await fetch(url);
         const text = await response.text();
@@ -32,14 +32,6 @@ async function fetchRss(url: string): Promise<NewsItem[] | null> {
         return news;
     } catch (error) {
         console.error("Error fetching RSS:", error);
-        return null;
+        return [];
     }
 }
-
-// Beispielaufruf
-fetchRss("https://news.google.com/rss/search?q=Nextcloud&hl=de&gl=DE&ceid=DE:de")
-    .then(news => {
-        if (news) {
-            console.log(news);
-        }
-    });

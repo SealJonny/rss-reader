@@ -5,7 +5,6 @@
 - **Allgemein**
   - Kategorisieren der News mithilfe von KI (basierend auf festen Kategorien)
   - Auslesen von XML-Dateien und parsen in Typescript Interfaces
-  - 
 
 - **Verwaltungsmodus**
   - Hinzufügen und Verwalten von neuen RSS-Feeds (Url's werden lokal gespeichert)

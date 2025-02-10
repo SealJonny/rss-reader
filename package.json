@@ -20,10 +20,13 @@
   "devDependencies": {
     "@types/jsdom": "^21.1.7",
     "@types/node": "^22.13.0",
+    "@types/sqlite3": "^3.1.11",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.3"
   },
   "dependencies": {
-    "jsdom": "^26.0.0"
+    "jsdom": "^26.0.0",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7"
   }
 }

@@ -15,7 +15,7 @@ function showNewsItem(item: NewsItem, index: number) {
 async function feed(id: number) {
     let news: NewsItem[] = [];
     try {
-        news = await fetchRss("https://www.tagesschau.de/infoservices/alle-meldungen-100~rss2.xml");
+        news = await fetchRss("https://news.google.com/rss/search?q=Technologie&hl=de&gl=DE&ceid=DE:de");
         
         let i = 0;
         while (true) {

@@ -1,6 +1,7 @@
 export enum UserAction {
     EXIT,
     FAVORIZE,
+    KILL,
     NEXT,
     PREVIOUS,
     UNDEFINED
@@ -17,11 +18,16 @@ export async function userInput() : Promise<UserAction> {
         const listener = (key: Buffer) => {
             if (key.length === 1) {
                 if (key[0] === 3) {
-                    resolve(UserAction.EXIT);
+                    resolve(UserAction.KILL);
                 }
                 const char = String.fromCharCode(key[0]);
-                if (char === "f") {
-                    resolve(UserAction.FAVORIZE);
+                switch(char) {
+                    case "f":
+                        resolve(UserAction.FAVORIZE);
+                        break;
+                    case "q":
+                        resolve(UserAction.EXIT);
+                        break;
                 }
             }
             

@@ -12,7 +12,7 @@ function showNewsItem(item: NewsItem, index: number) {
     console.log("\nFavorize (f), Next (down), Previous (up), Exit (Ctrl + C)");
 }
 
-async function feed(id: number) {
+export async function feed(id: number) {
     let news: NewsItem[] = [];
     try {
         news = await fetchRss("https://news.google.com/rss/search?q=Technologie&hl=de&gl=DE&ceid=DE:de");
@@ -40,4 +40,4 @@ async function feed(id: number) {
     }
 }
 
-feed(1);
+// feed(1);

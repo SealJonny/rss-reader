@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/SealJonny/rss-reader#readme",
   "devDependencies": {
+    "@types/blessed": "^0.1.25",
     "@types/jsdom": "^21.1.7",
     "@types/node": "^22.13.0",
     "@types/sqlite3": "^3.1.11",
@@ -25,6 +26,7 @@
     "typescript": "^5.7.3"
   },
   "dependencies": {
+    "blessed": "^0.1.81",
     "jsdom": "^26.0.0",
     "sqlite": "^5.1.1",
     "sqlite3": "^5.1.7"

@@ -9,7 +9,7 @@ import { NewsItem } from "../interfaces/news-item";
 export class Db {
     protected dbInstance: Database | null = null;
 
-    async connectDb() {
+    async connectDb(): Promise<Database> {
         if (!this.dbInstance) {
             this.dbInstance = await open({
                 filename: "database.sqlite",
@@ -19,7 +19,7 @@ export class Db {
         return this.dbInstance;
     }
 
-    async initTables() {
+    async initTables(): Promise<void> {
         const db = await this.connectDb();
         const categories = `
             CREATE TABLE IF NOT EXISTS categories (
@@ -64,7 +64,7 @@ export class Db {
         }
     }
 
-    async  executeInsert(query: string, ...params: any[]): Promise<boolean> {
+    async executeInsert(query: string, ...params: any[]): Promise<boolean> {
         try {
             const db = await this.connectDb();
             const result = await db.run(query, params);
@@ -80,7 +80,7 @@ export class Db {
     // Categories-Table //
     //////////////////////
 
-    async  addCategory(category: Category): Promise<boolean> {
+    async addCategory(category: Category): Promise<boolean> {
         const query = "INSERT INTO categories (name) VALUES (?)";
         return await this.executeInsert(query, category.name);
     }
@@ -208,7 +208,6 @@ export class Db {
         }
     }
 }
-
 
 const db = new Db();
 export default db;

@@ -1,5 +1,5 @@
 import blessed from 'blessed';
-import { feed } from '../feed';
+// import { feed } from '../feed';
 
 //
 // Types
@@ -238,7 +238,7 @@ function showMenu() {
 }
 
 function loadFeed() {
-    feed(1);
+    // feed(1);
 }
 
 //

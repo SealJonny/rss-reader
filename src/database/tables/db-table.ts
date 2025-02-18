@@ -7,7 +7,7 @@ export class DbTable {
         this.dbConnection = dbConnection;
     }
 
-    async executeUpdateOrDelete(query: string, ...params: any[]): Promise<boolean> {
+    protected async executeUpdateOrDelete(query: string, ...params: any[]): Promise<boolean> {
         try {
             const result = await this.dbConnection.run(query, params);
             return result.changes! > 0;
@@ -17,7 +17,7 @@ export class DbTable {
         }
     }
 
-    async executeInsert(query: string, ...params: any[]): Promise<boolean> {
+    protected async executeInsert(query: string, ...params: any[]): Promise<boolean> {
         try {
             const result = await this.dbConnection.run(query, params);
             return typeof result.lastID === "undefined";

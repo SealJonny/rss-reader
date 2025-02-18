@@ -2,7 +2,7 @@ import { Database } from "sqlite";
 import { DbTable } from "./db-table";
 import { Category } from "../../interfaces/category";
 
-class Categories extends DbTable {
+export class Categories extends DbTable {
     constructor(dbConnection: Database) {
         super(dbConnection);
     }
@@ -23,7 +23,7 @@ class Categories extends DbTable {
      * @param category A {@link Category} object which will be saved.
      * @returns true if saving {@link news} was successful; otherwise false.
      */
-    async save(category: Category) {
+    public async save(category: Category) {
         if (typeof category.id === "undefined") {
             return this.add(category); 
         }

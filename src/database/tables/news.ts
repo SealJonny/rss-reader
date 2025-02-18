@@ -2,7 +2,7 @@ import { Database } from "sqlite";
 import { DbTable } from "./db-table";
 import { NewsItem } from "../../interfaces/news-item";
 
-class News extends DbTable {
+export class News extends DbTable {
     constructor(dbConnection: Database) {
         super(dbConnection);
     }
@@ -23,7 +23,7 @@ class News extends DbTable {
      * @param news A {@link NewsItem} object which will be saved.
      * @returns true if saving {@link news} was successful; otherwise false.
      */
-    async saveNews(news: NewsItem) {
+    async save(news: NewsItem) {
         if (typeof news.id === "undefined") {
             return this.add(news); 
         }

@@ -1,6 +1,6 @@
 import blessed from 'blessed';
 import { showStartAnimation } from './start-animation-new';
-import { showRssFeedScreen } from './rss_feed_screen';
+import { showRssFeedScreen } from './rss-feed-screen';
 import { createHelpBox } from './help-box'
 
 export async function main() {

@@ -4,6 +4,7 @@ import { Category } from "../interfaces/category";
 import { NewsItem } from "../interfaces/news-item";
 import { Categories } from "./tables/categories";
 import { News } from "./tables/news";
+import { NewsCategories } from "./tables/news-categories";
 
 /////////////
 // General //
@@ -11,14 +12,16 @@ import { News } from "./tables/news";
 export class Db {
     public categories!: Categories;
     public news!: News;
+    public join!: NewsCategories;
 
     public async initialize(): Promise<void> {
         const db = await open({
             filename: "database.sqlite",
             driver: sqlite3.Database
         });
-        this.categories = new Categories(db);
-        this.news = new News(db);
+        this.categories = new Categories(db, "categories");
+        this.news = new News(db, "news");
+        this.join = new NewsCategories(db, "news_categories");
         await this.initTables(db);
     }
 

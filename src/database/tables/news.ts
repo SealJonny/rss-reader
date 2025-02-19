@@ -3,17 +3,17 @@ import { DbTable } from "./db-table";
 import { NewsItem } from "../../interfaces/news-item";
 
 export class News extends DbTable {
-    constructor(dbConnection: Database) {
-        super(dbConnection);
+    constructor(dbConnection: Database, tableName: string) {
+        super(dbConnection, tableName);
     }
 
     async add(news: NewsItem): Promise<boolean> {
-        const query = "INSERT INTO news (title, link, pubDate, description) VALUES (?, ?, ?, ?)";
+        const query = `INSERT INTO ${this.tableName} (title, link, pubDate, description) VALUES (?, ?, ?, ?)`;
         return await this.executeInsert(query, news.title, news.link, news.pubDate, news.description);
     }
 
     async update(id: number, news: NewsItem): Promise<boolean> {
-        const query = "UPDATE news SET title = ?, link = ?, pubDate = ?, description = ? WHERE id = ?";
+        const query = `UPDATE ${this.tableName} SET title = ?, link = ?, pubDate = ?, description = ? WHERE id = ?`;
         return await this.executeUpdateOrDelete(query, news.title, news.link, news.pubDate, news.description, id);
     }
 
@@ -31,7 +31,7 @@ export class News extends DbTable {
     }
 
     async delete(id: number): Promise<boolean> {
-        const query = "DELETE FROM news WHERE id = ?";
+        const query = `DELETE FROM ${this.tableName} WHERE id = ?`;
         return await this.executeUpdateOrDelete(query, id);
     }
 
@@ -44,13 +44,24 @@ export class News extends DbTable {
         const conditions = keys.map(key => `${key} = ?`).join(" AND ");
         const values = keys.map(key => (criteria as any)[key]);
         
-        const query = `SELECT * FROM news WHERE ${conditions}`;
-        try {
-            let result = await this.dbConnection.get<NewsItem>(query, values);
-            return result ? result : null;
-        } catch (error) {
-            console.error("Error while searching db:", error);
-            return null;
+        const query = `SELECT * FROM ${this.tableName} WHERE ${conditions}`;
+        return this.executeSingleFind<NewsItem>(query, values);
+    }
+
+    async all(criteria?: Partial<NewsItem>): Promise<NewsItem[]> {
+        if (criteria) {
+            const keys = Object.keys(criteria);
+            if (keys.length === 0) {
+                throw new Error("At least one criteria must be specified!");
+            }
+
+            const conditions = keys.map(key => `${key} = ?`).join(" AND ");
+            const values = keys.map(key => (criteria as any)[key]);
+            
+            const query = `SELECT * FROM ${this.tableName} WHERE ${conditions}`;
+            return await this.executeMultiFind<NewsItem>(query, values);
         }
+        const query = `SELECT * FROM ${this.tableName}`;
+        return await this.executeMultiFind<NewsItem>(query);
     }
 }

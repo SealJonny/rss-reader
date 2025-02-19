@@ -4,8 +4,8 @@ import { NewsItem } from "../interfaces/news-item";
 
 async function main() {
     await db.initialize();
-    let cat: Category = {id: undefined, name: "Hello"};
-    await db.categories.save(cat);
+
+    ["Wirtschaft", "Technik", "Politik"].forEach(async s => await db.categories.save({id: undefined, name: s}));
 
     let news: NewsItem = {id: undefined, title: "Hello", link: "https://nextcloudfritsch.dedyn.io", pubDate: "17.02.2025", description: "World"}
     await db.news.save(news);
@@ -13,9 +13,14 @@ async function main() {
     let foundNews = await db.news.findSingleBy({title: "Hello"});
     console.log(await db.categories.findSingleBy({name: "Hello"}));
 
-    // await db.addCategoryToNews(foundNews?.id!, 1);
-    // console.log(foundNews);
-    // console.log(await db.getNewsForCategory(1));
+    let writ = await db.categories.findSingleBy({name: "Wirtschaft"});
+    await db.join.addCategoryToNews(foundNews?.id!, writ?.id!);
+
+    console.log(foundNews);
+    console.log(await db.join.getNewsForCategory(1));
+    console.log();
+
+    console.log(await db.join.getCategoriesForNews(foundNews?.id!));
 }
 
 main().catch(e => console.error(e));

@@ -23,11 +23,11 @@ export class Categories extends DbTable {
      * @param category A {@link Category} object which will be saved.
      * @returns true if saving {@link news} was successful; otherwise false.
      */
-    public async save(category: Category) {
+    public async save(category: Category): Promise<boolean> {
         if (typeof category.id === "undefined") {
-            return this.add(category); 
+            return await this.add(category); 
         }
-        return this.update(category.id, category)
+        return await this.update(category.id, category)
     }
 
     async delete(id: number): Promise<boolean> {
@@ -37,7 +37,7 @@ export class Categories extends DbTable {
 
     async findSingleBy(criteria: Partial<Category>): Promise<Category | null> {
         const result = this.buildQueryFromCriteria(criteria);
-        return this.executeSingleFind<Category>(result.query, result.values);
+        return await this.executeSingleFind<Category>(result.query, result.values);
     }
 
     async all(criteria?: Partial<Category>): Promise<Category[]> {
@@ -45,7 +45,7 @@ export class Categories extends DbTable {
             const result = this.buildQueryFromCriteria(criteria);
             return await this.executeMultiFind<Category>(result.query, result.values);
         }
-        return this.executeMultiFind<Category>(`SELECT * FROM ${this.tableName}`);
+        return await this.executeMultiFind<Category>(`SELECT * FROM ${this.tableName}`);
     }
 
 }

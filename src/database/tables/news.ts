@@ -23,11 +23,11 @@ export class News extends DbTable {
      * @param news A {@link NewsItem} object which will be saved.
      * @returns true if saving {@link news} was successful; otherwise false.
      */
-    async save(news: NewsItem) {
+    async save(news: NewsItem): Promise<boolean> {
         if (typeof news.id === "undefined") {
-            return this.add(news); 
+            return await this.add(news); 
         }
-        return this.update(news.id, news)
+        return await this.update(news.id, news)
     }
 
     async delete(id: number): Promise<boolean> {
@@ -37,7 +37,7 @@ export class News extends DbTable {
 
     async findSingleBy(criteria: Partial<NewsItem>): Promise<NewsItem | null> {
         const result = this.buildQueryFromCriteria(criteria);
-        return this.executeSingleFind<NewsItem>(result.query, result.values);
+        return await this.executeSingleFind<NewsItem>(result.query, result.values);
     }
 
     async all(criteria?: Partial<NewsItem>): Promise<NewsItem[]> {

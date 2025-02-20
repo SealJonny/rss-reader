@@ -10,7 +10,7 @@ export class DbTable {
 
     protected async executeUpdateOrDelete(query: string, ...params: any[]): Promise<boolean> {
         try {
-            const result = await this.dbConnection.run(query, params);
+            const result = await this.dbConnection.run(query, ...params);
             return result.changes! > 0;
         } catch (error) {
             console.error("Error while executing query:", error);
@@ -20,8 +20,8 @@ export class DbTable {
 
     protected async executeInsert(query: string, ...params: any[]): Promise<boolean> {
         try {
-            const result = await this.dbConnection.run(query, params);
-            return typeof result.lastID === "undefined";
+            const result = await this.dbConnection.run(query, ...params);
+            return typeof result.lastID !== "undefined";
         } catch (error) {
             console.error("Error while executing query:", error);
             return false;
@@ -30,8 +30,8 @@ export class DbTable {
 
     protected async executeSingleFind<T>(query: string, ...params: any[]): Promise<T | null> {
         try {
-            let result = await this.dbConnection.get<T>(query, params);
-            return result ? result : null;
+            let result = await this.dbConnection.get<T>(query, ...params);
+            return result ?? null;
         } catch (error) {
             console.error("Error while searching db:", error);
             return null;
@@ -40,7 +40,7 @@ export class DbTable {
 
     protected async executeMultiFind<T>(query: string, ...params: any[]): Promise<T[]> {
         try {
-            return await this.dbConnection.all<T[]>(query, params);
+            return await this.dbConnection.all<T[]>(query, ...params);
         } catch (error) {
             console.error("Error while searching db:", error);
             return [];

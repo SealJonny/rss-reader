@@ -9,6 +9,9 @@ export class NewsCategories extends DbTable {
     }
 
     async addCategoryToNews(newsId: number, categoryId: number): Promise<boolean> {
+        if (isNaN(newsId) || isNaN(categoryId)) {
+            return false;
+        }
         const query = "INSERT INTO news_categories (category_id, news_id) VALUES (?, ?)";
         return await this.executeInsert(query, categoryId, newsId);
     }

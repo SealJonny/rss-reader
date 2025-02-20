@@ -1,5 +1,4 @@
 import db from "./database";
-import { Category } from "../interfaces/category";
 import { NewsItem } from "../interfaces/news-item";
 
 async function main() {

@@ -36,34 +36,16 @@ export class Categories extends DbTable {
     }
 
     async findSingleBy(criteria: Partial<Category>): Promise<Category | null> {
-        const keys = Object.keys(criteria);
-        if (keys.length === 0) {
-            throw new Error("At least one criteria must be specified!");
-        }
-
-        const conditions = keys.map(key => `${key} = ?`).join(" AND ");
-        const values = keys.map(key => (criteria as any)[key]);
-        
-        const query = `SELECT * FROM ${this.tableName} WHERE ${conditions}`;
-        return this.executeSingleFind<Category>(query, values);
+        const result = this.buildQueryFromCriteria(criteria);
+        return this.executeSingleFind<Category>(result.query, result.values);
     }
 
     async all(criteria?: Partial<Category>): Promise<Category[]> {
         if (criteria) {
-            const keys = Object.keys(criteria);
-            if (keys.length === 0) {
-                throw new Error("At least one criteria must be specified!");
-            }
-
-            const conditions = keys.map(key => `${key} = ?`).join(" AND ");
-            const values = keys.map(key => (criteria as any)[key]);
-            
-            const query = `SELECT * FROM ${this.tableName} WHERE ${conditions}`;
-            return await this.executeMultiFind<Category>(query, values);
+            const result = this.buildQueryFromCriteria(criteria);
+            return await this.executeMultiFind<Category>(result.query, result.values);
         }
-
-        let query = `SELECT * FROM ${this.tableName}`;
-        return this.executeMultiFind<Category>(query);
+        return this.executeMultiFind<Category>(`SELECT * FROM ${this.tableName}`);
     }
 
 }

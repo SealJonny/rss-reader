@@ -47,7 +47,7 @@ export class DbTable {
         }
     }
 
-    protected buildQueryFromCriteria<T>(criteria: Partial<T>) {
+    protected buildQueryFromCriteria<T>(criteria: Partial<T>): {query: string; values: any[]} {
         const keys = Object.keys(criteria);
         if (keys.length === 0) {
             throw new Error("At least one criteria must be specified!");
@@ -57,5 +57,6 @@ export class DbTable {
         const values = keys.map(key => (criteria as any)[key]);
         
         const query = `SELECT * FROM ${this.tableName} WHERE ${conditions}`;
+        return {query: query, values: values};
     }
 }

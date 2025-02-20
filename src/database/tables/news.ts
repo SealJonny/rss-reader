@@ -36,30 +36,14 @@ export class News extends DbTable {
     }
 
     async findSingleBy(criteria: Partial<NewsItem>): Promise<NewsItem | null> {
-        const keys = Object.keys(criteria);
-        if (keys.length === 0) {
-            throw new Error("At least one criteria must be specified!");
-        }
-
-        const conditions = keys.map(key => `${key} = ?`).join(" AND ");
-        const values = keys.map(key => (criteria as any)[key]);
-        
-        const query = `SELECT * FROM ${this.tableName} WHERE ${conditions}`;
-        return this.executeSingleFind<NewsItem>(query, values);
+        const result = this.buildQueryFromCriteria(criteria);
+        return this.executeSingleFind<NewsItem>(result.query, result.values);
     }
 
     async all(criteria?: Partial<NewsItem>): Promise<NewsItem[]> {
         if (criteria) {
-            const keys = Object.keys(criteria);
-            if (keys.length === 0) {
-                throw new Error("At least one criteria must be specified!");
-            }
-
-            const conditions = keys.map(key => `${key} = ?`).join(" AND ");
-            const values = keys.map(key => (criteria as any)[key]);
-            
-            const query = `SELECT * FROM ${this.tableName} WHERE ${conditions}`;
-            return await this.executeMultiFind<NewsItem>(query, values);
+            const result = this.buildQueryFromCriteria(criteria)
+            return await this.executeMultiFind<NewsItem>(result.query, result.values);
         }
         const query = `SELECT * FROM ${this.tableName}`;
         return await this.executeMultiFind<NewsItem>(query);

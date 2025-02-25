@@ -18,7 +18,7 @@ export function createHelpBox(screen: blessed.Widgets.Screen) {
     keys: false,
 
     tags: true,
-    content: 'Favorize (f), Next (down), Previous (up), Exit (Ctrl + C)',
+    content: 'Favorize (f), Next (down), Previous (up), Exit (q)',
   });
 
   // Dem Screen anhängen

@@ -89,7 +89,7 @@ const startAnimationFrames: string[][] = [
   ],
 ];
 
-export async function showStartAnimation(screen: blessed.Widgets.Screen): Promise<void> {
+export async function showStartAnimation(screen: blessed.Widgets.Screen): Promise<blessed.Widgets.BoxElement> {
   // Berechne die maximale Zeilenlänge für horizontale Zentrierung
   const maxLineLength = startAnimationFrames.reduce((max, frame) => {
     const frameMax = frame.reduce((m, line) => Math.max(m, line.length), 0);
@@ -140,6 +140,7 @@ export async function showStartAnimation(screen: blessed.Widgets.Screen): Promis
   screen.render();
 
   // Warten, bis Enter gedrückt wird
+  animationBox.focus();
   await new Promise<void>((resolve) => {
     // Variante 1: Mit screen.key()
     screen.key(['enter'], () => {
@@ -155,6 +156,7 @@ export async function showStartAnimation(screen: blessed.Widgets.Screen): Promis
   });
 
   // AnimationBox entfernen oder weiteren Code ausführen
-  screen.remove(animationBox);
+  animationBox.hide();
   screen.render();
+  return animationBox;
 }

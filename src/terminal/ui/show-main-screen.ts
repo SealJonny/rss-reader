@@ -17,7 +17,7 @@ export async function showMainScreen(screen: blessed.Widgets.Screen): Promise<Nu
 
   screen.append(mainScreenBox);
   screen.render();
-
+  mainScreenBox.focus();
 
   await new Promise<void>((resolve) => {
     mainScreenBox.key(['1'], () => {

@@ -20,14 +20,18 @@ export async function main() {
   // 3) Main menu loop
   while(true) {
     // Show main menu and get user choice
+    const helpBox = createHelpBox(screen, "main-screen");
     const menuChoice = await showMainScreen(screen);
-
+    helpBox.destroy();
+    screen.render();
+    
+    // Handle user choice
     if (menuChoice === 1) {
       // Show animation
       await showStartAnimation(screen);
     } else if (menuChoice === 2) {
       // Show RSS feed with help box
-      const helpBox = createHelpBox(screen);
+      const helpBox = createHelpBox(screen, "rss-feed");
       try {
         const rssFeed = await showRssFeedScreen(screen);
         // Focus on the RSS feed to capture navigation keys

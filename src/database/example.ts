@@ -22,7 +22,10 @@ async function main() {
         console.log("Successfully inserted an n:m relationship!")
     }
 
-    console.log(await db.join.getNewsForCategory(business?.id!));
+    console.log("First", await db.join.getNewsForCategory(business?.id!));
+    db.news.delete(found?.id!);
+    console.log("Second", await db.join.getNewsForCategory(business?.id!));
+
 }
 
 main().catch(e => console.error(e));

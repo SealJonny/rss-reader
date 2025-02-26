@@ -8,7 +8,7 @@ export class News extends DbTable {
     }
 
     async add(news: NewsItem): Promise<boolean> {
-        const query = `INSERT INTO ${this.tableName} (title, link, pubDate, description) VALUES (?, ?, ?, ?)`;
+        const query = `INSERT INTO ${this.tableName} (title, link, pubDate, description, creationDate, isFavorite) VALUES (?, ?, ?, ?, datetime(), 0)`;
         return await this.executeInsert(query, news.title, news.link, news.pubDate, news.description);
     }
 

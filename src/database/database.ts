@@ -37,7 +37,9 @@ export class Db {
                 title TEXT NOT NULL,
                 link TEXT,
                 pubDate TEXT,
-                description TEXT
+                description TEXT,
+                creationDate TEXT,
+                isFavorite INTEGER
             );
         `; 
 
@@ -51,6 +53,8 @@ export class Db {
             );
         `;
 
+        // Activate foreign keys integrity
+        db.exec("PRAGMA foreign_keys = ON;");
         await db.exec(categories);
         await db.exec(news);
         await db.exec(categories_news);

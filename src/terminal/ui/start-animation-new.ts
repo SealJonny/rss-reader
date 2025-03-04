@@ -103,6 +103,7 @@ export async function showStartAnimation(screen: blessed.Widgets.Screen): Promis
     width: maxLineLength + 1,
     height: startAnimationFrames[0].length + 3,
     tags: true,
+    wrap: false,
     style: { bg: 'black' },
   });
 
@@ -146,13 +147,6 @@ export async function showStartAnimation(screen: blessed.Widgets.Screen): Promis
     screen.key(['enter'], () => {
       resolve();
     });
-
-    // Variante 2 (falls Variante 1 nicht funktioniert):
-    // screen.once('keypress', (ch, key) => {
-    //   if (key && key.name === 'enter') {
-    //     resolve();
-    //   }
-    // });
   });
 
   // AnimationBox entfernen oder weiteren Code ausführen

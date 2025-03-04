@@ -38,4 +38,3 @@ export function interpolateColor(
 export function colorText(text: string, color: RGB): string {
   return `\x1b[38;2;${color.r};${color.g};${color.b}m${text}\x1b[0m`;
 }
-  

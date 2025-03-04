@@ -17,15 +17,14 @@ export function createHelpBox(screen: blessed.Widgets.Screen, view: View) {
     clickable: false,
     keyable: false,
     keys: false,
-
-    tags: true,
+    
     content: 'Favorize (f), Next (down), Previous (up), Exit (q)',
   });
 
   if (view === "rss-feed") {
     helpBox.setContent('Favorize (f), Next (down), Previous (up), Back to main-screen (q)');
   } else if (view === "main-screen") {
-    helpBox.setContent('Exit (Ctrl + c)');
+    helpBox.setContent('Exit (ctrl + c; esc)');
   }
 
   // Dem Screen anhängen

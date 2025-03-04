@@ -50,7 +50,23 @@ export async function main() {
     screen.render();
     
     // Handle user choice
-    if (menuChoice === 1) {
+    if( menuChoice === 0) {
+      // Error handling
+      const errorBox = blessed.box({
+        parent: screen,
+        bottom: 0,
+        right: 0,
+        width: '100%',
+        height: 'shrink',
+        align: 'left',
+        valign: 'middle',
+        style: {
+          fg: 'red',
+        },
+        content: "Error: Choice couldn't be handled.",
+      });
+    }
+    if (menuChoice === 6) {
       // Show animation
       await showStartAnimation(screen);
     } else if (menuChoice === 2) {

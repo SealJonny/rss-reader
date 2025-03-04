@@ -12,9 +12,33 @@ export async function main() {
     title: 'RSS-Feed-Reader',
   });
 
-  // 2) Global keys for quitting
+  // Zustand für Quit-Bestätigung
+  let quitPending = false;
+
+  // Quitting
   screen.key(['escape', 'C-c'], () => {
-    process.exit(0);
+    if (!quitPending) {
+      quitPending = true;
+      // Erstelle eine Message-Box, die eine Bestätigung anzeigt
+      const confirmBox = blessed.message({
+        parent: screen,
+        bottom: 0,
+        right: 0,
+        width: '100%',
+        height: 'shrink',
+        align: 'left',
+        valign: 'middle',
+        style: {
+          fg: 'gray',
+        }
+      });
+      // Zeige die Nachricht für 3 Sekunden an
+      confirmBox.display('Press ESC oder Ctrl+C um zu beenden', 3, () => {
+        quitPending = false;
+      });
+    } else {
+      process.exit(0);
+    }
   });
 
   // 3) Main menu loop

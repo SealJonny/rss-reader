@@ -18,17 +18,8 @@
   - Navigieren per Pfeiltasten und Hotkeys für weitere Aktionen
   - News können im default Browser per Hotkey geöffnet werden
   - Favorisieren von News (Permanente Speicherung)
+
 ## Nice-To-Haves
 
 - Speicherung der RSS-News und der Kategorien in einer SQLite-DB 
 - Nextcloud Integration (Synchronisation der DB)
-
-## Funktion
-- Start des Programms
-  - Asynchrones cachen der gespeicherten RSS-Feeds
-  - Kategorisieren mit Ki
-
-- Menü
-  - Administration
-  - Feeds
-  - Kategorien 

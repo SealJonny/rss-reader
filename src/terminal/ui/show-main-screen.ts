@@ -1,5 +1,7 @@
 import blessed from 'blessed';
 import { wait, hexToRgb, interpolateColor, colorText } from '../../utils/animation-utils';
+import { addCustomKeyEventsToList } from '../../utils/custom-key-events';
+import { createHelpBox } from './help-box';
 
 export async function showMainScreen(screen: blessed.Widgets.Screen): Promise<number> {
   return new Promise<number>((resolve) => {
@@ -94,12 +96,10 @@ export async function showMainScreen(screen: blessed.Widgets.Screen): Promise<nu
       top: 9,
       left: 0,
       width: 'shrink',
-      height: 8,
+      height: 9,
       keys: false,
       tags: true,
-      wrap: true,     // Zirkuläre Navigation
-      // Setze die Items initial – das erste Element als ausgewählt
-
+      wrap: true,
       items: choices.map((item, index) => (index === 1 ? `❯ ${item}` : `  ${item}`)),
       style: {
         selected: {
@@ -117,52 +117,7 @@ export async function showMainScreen(screen: blessed.Widgets.Screen): Promise<nu
     screen.render();
 
 
-    // Funktion, die prüft, ob ein Eintrag eine Überschrift ist
-    function isHeading(index: number): boolean {
-      return choices[index].startsWith('{#D9ACDA-fg}');
-    }
-
-    // Aktualisiere die Darstellung, wenn der Benutzer navigiert
-    list.on('keypress', (_ch, key) => {
-      if (['up', 'down'].includes(key.name)) {
-        // process.nextTick stellt sicher, dass list.selected bereits aktualisiert ist
-        process.nextTick(() => {
-          const selectedIndex = (list as any).selected as number;
-          list.setItems(
-            choices.map((item, index) =>
-              index === selectedIndex ? `❯ ${item}` : `  ${item}`
-            )
-          );
-          screen.render();
-        });
-      }
-      if (key.name === 'up') {
-        // Greife auf den aktuellen Index zu
-        const currentIndex = (list as any).selected as number;
-        let newIndex = currentIndex === 0 ? choices.length - 1 : currentIndex - 1;
-
-        // Solange newIndex auf eine Überschrift zeigt, überspringe diesen Eintrag
-        while (isHeading(newIndex)) {
-          newIndex = newIndex === 0 ? choices.length - 1 : newIndex - 1;
-        }
-
-        list.select(newIndex);
-        screen.render();
-      }
-      else if (key.name === 'down') {
-        // Greife auf den aktuellen Index zu
-        const currentIndex = (list as any).selected as number;
-        let newIndex = currentIndex === choices.length - 1 ? 0 : currentIndex + 1;
-
-        // Solange newIndex auf eine Überschrift zeigt, überspringe diesen Eintrag
-        while (isHeading(newIndex)) {
-          newIndex = newIndex === choices.length - 1 ? 0 : newIndex + 1;
-        }
-
-        list.select(newIndex);
-        screen.render();
-      }
-    });
+    addCustomKeyEventsToList(list, screen, choices);
 
     // Manuelles Binden der Enter-Taste:
     list.key('enter', () => {
@@ -181,11 +136,114 @@ export async function showMainScreen(screen: blessed.Widgets.Screen): Promise<nu
       screen.render();
     });
     list.key(['2'], () => {
-      resolve(2);
-      list.setContent('');
+      const helpBox = createHelpBox(screen, "nested-list");
+      const nestedChoices = [
+        '{#D9ACDA-fg}{bold}Categorized Feeds{/bold}{/#D9ACDA-fg}',
+        ' Technical Feed (1)',
+        ' Economical Feed (2)',
+        ' Political Feed (3)',
+      ];
+      const nestedList = blessed.list({
+        parent: mainScreenBox,
+        top: 19,
+        left: 0,
+        width: 'shrink',
+        height: 6,
+        keys: false,
+        tags: true,
+        wrap: true,
+        items: nestedChoices.map((item, index) => (index === 1 ? `❯ ${item}` : `  ${item}`)),
+        style: {
+          selected: {
+            fg: '#B2A4FF'
+          },
+          fg: 'gray',
+          border: {
+            fg: '#FFB4B4'
+          }
+        },
+        border: 'line',
+        padding: {
+          left: 1,
+          right: 1,
+        },
+      });
+      nestedList.select(1);
+      nestedList.focus();
       screen.render();
-      mainScreenBox.destroy();
-      screen.render();
+      addCustomKeyEventsToList(nestedList, screen, nestedChoices);
+      nestedList.key(['backspace', 'q'], () => {
+        
+        nestedList.setContent('');
+        helpBox.destroy();
+        screen.render();
+        nestedList.destroy();
+        screen.render();
+        list.focus();
+      });
+      // Bestehender Handler für Taste '1'
+      nestedList.key(['1'], () => {
+        resolve(11);
+        list.setContent('Test');
+        nestedList.setContent('');
+        helpBox.destroy();
+        screen.render();
+        nestedList.destroy();
+        screen.render();
+      });
+      
+      // Handler für Taste '2' (Economical Feed)
+      nestedList.key(['2'], () => {
+        resolve(12);
+        list.setContent('');
+        nestedList.setContent('');
+        helpBox.destroy();
+        screen.render();
+        nestedList.destroy();
+        screen.render();
+      });
+      
+      // Handler für Taste '3' (Political Feed)
+      nestedList.key(['3'], () => {
+        resolve(13);
+        list.setContent('');
+        nestedList.setContent('');
+        helpBox.destroy();
+        screen.render();
+        nestedList.destroy();
+        screen.render();
+      });
+      
+      // Enter-Taste für die verschachtelte Liste
+      nestedList.key('enter', () => {
+        const selectedIndex = (nestedList as any).selected as number;
+        const items = (nestedList as any).items as string[];
+        nestedList.emit('select', items[selectedIndex], selectedIndex);
+      });
+      
+      // Handler für select-Event
+      nestedList.on('select', (_item, index) => {
+        // Extrahiere die Zahl aus dem ausgewählten Text (1, 2 oder 3)
+        const itemText = _item.getText ? _item.getText() : _item.content;
+        const match = itemText.match(/\((\d+)\)/);
+        
+        if (match) {
+          // Wenn eine Zahl gefunden wurde, wandle sie um und füge 10 hinzu (10 + 1 = 11 für Technical usw.)
+          const categoryNum = parseInt(match[1], 10);
+          resolve(10 + categoryNum);
+        } else {
+          // Fallback basierend auf Index
+          resolve(11 + index - 1); // -1 um den Header zu berücksichtigen
+        }
+        
+        // Cleanup
+        list.setContent('');
+        nestedList.setContent('');
+        helpBox.destroy();
+        screen.render();
+        nestedList.destroy();
+        screen.render();
+      });
     });
     list.key(['6'], () => {
       resolve(6);

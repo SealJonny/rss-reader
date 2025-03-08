@@ -69,17 +69,61 @@ export async function main() {
     if (menuChoice === 6) {
       // Show animation
       await showStartAnimation(screen);
-    } else if (menuChoice === 2) {
+    } else if (menuChoice === 1) {
       // Show RSS feed with help box
       const helpBox = createHelpBox(screen, "rss-feed");
       try {
-        const rssFeed = await showRssFeedScreen(screen);
+        const rssFeed = await showRssFeedScreen(screen, 'general-feed'); // Todo: Soll dann nacher noch einen parameter für welchen feed es ist bekommen
         // Focus on the RSS feed to capture navigation keys
         rssFeed.focus();
         // After the function completes (user exits), destroy the feedBox
         rssFeed.destroy();
       } finally {
         // Make sure help box is always destroyed when done
+        helpBox.destroy();
+        screen.render();
+      }
+    } else if (menuChoice === 2) {
+      // Show favorites feed
+      const helpBox = createHelpBox(screen, "rss-feed");
+      try {
+        const rssFeed = await showRssFeedScreen(screen, 'favorites-feed');
+        rssFeed.focus();
+        rssFeed.destroy();
+      } finally {
+        helpBox.destroy();
+        screen.render();
+      }
+    } else if (menuChoice === 11) {
+      // Show technical feed
+      const helpBox = createHelpBox(screen, "rss-feed");
+      try {
+        const rssFeed = await showRssFeedScreen(screen, 'technical-feed');
+        rssFeed.focus();
+        rssFeed.destroy();
+      } finally {
+        helpBox.destroy();
+        screen.render();
+      }
+    } else if (menuChoice === 12) {
+      // Show economical feed
+      const helpBox = createHelpBox(screen, "rss-feed");
+      try {
+        const rssFeed = await showRssFeedScreen(screen, 'economical-feed');
+        rssFeed.focus();
+        rssFeed.destroy();
+      } finally {
+        helpBox.destroy();
+        screen.render();
+      }
+    } else if (menuChoice === 13) {
+      // Show political feed
+      const helpBox = createHelpBox(screen, "rss-feed");
+      try {
+        const rssFeed = await showRssFeedScreen(screen, 'political-feed');
+        rssFeed.focus();
+        rssFeed.destroy();
+      } finally {
         helpBox.destroy();
         screen.render();
       }

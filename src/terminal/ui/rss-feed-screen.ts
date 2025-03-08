@@ -70,16 +70,25 @@ export async function showRssFeedScreen(screen: blessed.Widgets.Screen, Feed: Fe
       showNewsItem(news[index], index, feedBox, screen);
     });
 
+    } else if (Feed === "favorites-feed") {
+      feedBox.setContent('Favoriten');
+    } else if (Feed === "technical-feed") {
+      feedBox.setContent('Technik');
+    } else if (Feed === "economical-feed") {
+      feedBox.setContent('Wirtschaft');
+    } else if (Feed === "political-feed") {
+      feedBox.setContent('Politik');
+    }
+
+    screen.render();
+
+
     await new Promise<void>((resolve) => {
       feedBox.key(['q'], () => {
         resolve();
       });
     });
-  } else if (Feed === "favorites-feed") {
-    feedBox.setContent('Favoriten');
-  } else if (Feed === "technical-feed") {
-    feedBox.setContent('Technik');
-  }
+  
   
   return feedBox;
 }

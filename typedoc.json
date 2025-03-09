@@ -4,5 +4,7 @@
     "out": "docs",
     "excludePrivate": true,
     "excludeInternal": true,
-    "theme": "default"
+    "exclude": ["**/deprecated/**", "**/node_modules/**"],
+    "theme": "default",
+    "skipErrorChecking": true
 }

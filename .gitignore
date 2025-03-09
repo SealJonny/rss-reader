@@ -3,3 +3,4 @@ dist
 database.sqlite3
 database.sqlite
 .env
+docs/*

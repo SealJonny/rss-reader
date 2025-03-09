@@ -1,5 +1,5 @@
-import { NewsItem } from "../../interfaces/news-item";
-import { fetchRss } from "../../xml/rss";
+import { NewsItem } from "../../../interfaces/news-item";
+import { fetchRss } from "../../../xml/rss";
 import blessed from 'blessed';
 
 type Feeds = "general-feed" | "favorites-feed" | "technical-feed" | "economical-feed" | "political-feed" | "other-feeds";
@@ -92,4 +92,3 @@ export async function showRssFeedScreen(screen: blessed.Widgets.Screen, Feed: Fe
   
   return feedBox;
 }
-

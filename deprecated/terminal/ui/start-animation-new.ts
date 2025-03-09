@@ -1,5 +1,5 @@
 import blessed from 'blessed';
-import { wait, hexToRgb, interpolateColor, colorText } from '../../utils/animation-utils';
+import { wait, hexToRgb, interpolateColor, colorText } from '../../../utils/animation-utils';
 
 //
 // Frames for the start animation

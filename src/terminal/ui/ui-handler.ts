@@ -1,11 +1,15 @@
 import blessed from 'blessed';
-import { showStartAnimation } from './start-animation-new';
-import { showRssFeedScreen } from './rss-feed-screen';
-import { showMainScreen } from './show-main-screen';
-import { createHelpBox } from './help-box';
+import { showStartAnimation } from './screens/start-animation';
+import { showRssFeedScreen, FeedType } from './screens/rss-feed-screen';
+import { showMainScreen, MainMenuSelection, FeedCategory } from './screens/main-screen';
+import { createHelpBox } from './components/help-box';
+import { createConfirmBox } from './utils/ui-utils';
 
+/**
+ * Hauptfunktion für die UI-Steuerung
+ */
 export async function main() {
-  // 1) Create main screen
+  // Erstelle Hauptbildschirm
   const screen = blessed.screen({
     smartCSR: true,
     fullUnicode: true,
@@ -15,118 +19,70 @@ export async function main() {
   // Zustand für Quit-Bestätigung
   let quitPending = false;
 
-  // Quitting
+  // Beenden der Anwendung
   screen.key(['escape', 'C-c'], () => {
     if (!quitPending) {
       quitPending = true;
-      // Erstelle eine Message-Box, die eine Bestätigung anzeigt
-      const confirmBox = blessed.message({
-        parent: screen,
-        bottom: 0,
-        right: 0,
-        width: '100%',
-        height: 'shrink',
-        align: 'left',
-        valign: 'middle',
-        style: {
-          fg: 'gray',
-        }
-      });
-      // Zeige die Nachricht für 3 Sekunden an
-      confirmBox.display('Press ESC oder Ctrl+C um zu beenden', 3, () => {
-        quitPending = false;
-      });
+      // Bestätigungsnachricht anzeigen
+      const confirmBox = createConfirmBox(screen, 'Press ESC oder Ctrl+C um zu beenden');
+      // Nach 3 Sekunden wird automatisch quitPending zurückgesetzt
     } else {
       process.exit(0);
     }
   });
 
-  // 3) Main menu loop
+  // Hauptprogrammschleife
   while(true) {
-    // Show main menu and get user choice
+    // Hilfsbox anzeigen und Benutzerauswahl vom Hauptscreen holen
     const helpBox = createHelpBox(screen, "main-screen");
     const menuChoice = await showMainScreen(screen);
     helpBox.destroy();
     screen.render();
     
-    // Handle user choice
-    if( menuChoice === 0) {
-      // Error handling
-      const errorBox = blessed.box({
-        parent: screen,
-        bottom: 0,
-        right: 0,
-        width: '100%',
-        height: 'shrink',
-        align: 'left',
-        valign: 'middle',
-        style: {
-          fg: 'red',
-        },
-        content: "Error: Choice couldn't be handled.",
-      });
+    // Benutzeraktion verarbeiten
+    switch(menuChoice) {
+      case MainMenuSelection.GENERAL_FEED:
+        await showFeed(screen, 'general-feed');
+        break;
+
+      case MainMenuSelection.FAVORITE_FEED:
+        await showFeed(screen, 'favorites-feed');
+        break;
+
+      case FeedCategory.TECHNICAL:
+        await showFeed(screen, 'technical-feed');
+        break;
+
+      case FeedCategory.ECONOMICAL:
+        await showFeed(screen, 'economical-feed');
+        break;
+
+      case FeedCategory.POLITICAL:
+        await showFeed(screen, 'political-feed');
+        break;
+
+      case MainMenuSelection.START_ANIMATION:
+        await showStartAnimation(screen);
+        break;
+
+      default:
+        // Bei unbekannten Optionen nichts tun
+        break;
     }
-    if (menuChoice === 6) {
-      // Show animation
-      await showStartAnimation(screen);
-    } else if (menuChoice === 1) {
-      // Show RSS feed with help box
-      const helpBox = createHelpBox(screen, "rss-feed");
-      try {
-        const rssFeed = await showRssFeedScreen(screen, 'general-feed'); // Todo: Soll dann nacher noch einen parameter für welchen feed es ist bekommen
-        // Focus on the RSS feed to capture navigation keys
-        rssFeed.focus();
-        // After the function completes (user exits), destroy the feedBox
-        rssFeed.destroy();
-      } finally {
-        // Make sure help box is always destroyed when done
-        helpBox.destroy();
-        screen.render();
-      }
-    } else if (menuChoice === 2) {
-      // Show favorites feed
-      const helpBox = createHelpBox(screen, "rss-feed");
-      try {
-        const rssFeed = await showRssFeedScreen(screen, 'favorites-feed');
-        rssFeed.focus();
-        rssFeed.destroy();
-      } finally {
-        helpBox.destroy();
-        screen.render();
-      }
-    } else if (menuChoice === 11) {
-      // Show technical feed
-      const helpBox = createHelpBox(screen, "rss-feed");
-      try {
-        const rssFeed = await showRssFeedScreen(screen, 'technical-feed');
-        rssFeed.focus();
-        rssFeed.destroy();
-      } finally {
-        helpBox.destroy();
-        screen.render();
-      }
-    } else if (menuChoice === 12) {
-      // Show economical feed
-      const helpBox = createHelpBox(screen, "rss-feed");
-      try {
-        const rssFeed = await showRssFeedScreen(screen, 'economical-feed');
-        rssFeed.focus();
-        rssFeed.destroy();
-      } finally {
-        helpBox.destroy();
-        screen.render();
-      }
-    } else if (menuChoice === 13) {
-      // Show political feed
-      const helpBox = createHelpBox(screen, "rss-feed");
-      try {
-        const rssFeed = await showRssFeedScreen(screen, 'political-feed');
-        rssFeed.focus();
-        rssFeed.destroy();
-      } finally {
-        helpBox.destroy();
-        screen.render();
-      }
-    }
+  }
+}
+
+/**
+ * Hilfsfunktion für das Anzeigen verschiedener Feed-Typen
+ */
+async function showFeed(screen: blessed.Widgets.Screen, feedType: FeedType) {
+  const helpBox = createHelpBox(screen, "rss-feed");
+  try {
+    const rssFeed = await showRssFeedScreen(screen, feedType);
+    rssFeed.focus();
+    rssFeed.destroy();
+  } finally {
+    helpBox.destroy();
+    screen.render();
   }
 }

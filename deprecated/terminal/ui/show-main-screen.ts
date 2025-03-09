@@ -1,7 +1,7 @@
 import blessed from 'blessed';
-import { wait, hexToRgb, interpolateColor, colorText } from '../../utils/animation-utils';
-import { addCustomKeyEventsToList } from '../../utils/custom-key-events';
-import { createHelpBox } from './help-box';
+import { wait, hexToRgb, interpolateColor, colorText } from '../../../utils/animation-utils';
+import { addCustomKeyEventsToList } from '../../../utils/custom-key-events';
+import { createHelpBox } from '../help-box';
 
 export async function showMainScreen(screen: blessed.Widgets.Screen): Promise<number> {
   return new Promise<number>((resolve) => {
@@ -275,6 +275,5 @@ export async function showMainScreen(screen: blessed.Widgets.Screen): Promise<nu
       mainScreenBox.destroy();
       screen.render();
     });
-    
   });
 }

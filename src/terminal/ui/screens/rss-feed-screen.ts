@@ -3,6 +3,7 @@ import { NewsItem } from "../../../interfaces/news-item";
 import { fetchRss } from "../../../xml/rss";
 import { createErrorBox } from "../utils/ui-utils";
 import { colors } from '../themes/default-theme';
+import { getScreenWidth } from '../utils/feed-utils';
 
 export type FeedType = "general-feed" | "favorites-feed" | "technical-feed" | "economical-feed" | "political-feed" | "other-feeds";
 
@@ -56,13 +57,30 @@ function showNewsItem(
   feedBox.setContent('');
   screen.render();
   
+  
   // Neuen Inhalt erstellen und setzen
   let content = '';
-  content += `${index + 1}/${total} - ${feedBox.options._feedTitle || ''}\n\n`;
-  content += `📰 ${item.title}\n`;
-  content += `📅 ${item.pubDate}\n\n`;
-  content += `📖 ${item.description}\n\n`;
-  content += `🔗 ${item.link}\n`;
+  // Navigations-Header mit Feed-Titel
+  content += `{bold}{${colors.accent}-fg}${index + 1}/${total} - ${feedBox.options._feedTitle || ''}{/${colors.accent}-fg}{/bold}\n`;
+  
+  // Horizontale Linie
+  
+  content += `{${colors.secondary}-fg}${'─'.repeat(getScreenWidth(screen) - 2)}{/${colors.secondary}-fg}\n\n`;
+  
+  // Titel hervorheben
+  content += `{bold}{${colors.primary}-fg}📰 ${item.title}{/${colors.primary}-fg}{/bold}\n\n`;
+  
+  // Datum in Sekundärfarbe
+  content += `{${colors.secondary}-fg}📅 ${item.pubDate}{/${colors.secondary}-fg}\n\n`;
+  
+  // Beschreibung mit Einrückung für bessere Lesbarkeit
+  content += `{white-fg}📖 ${item.description.replace(/\n/g, '\n   ')}{/white-fg}\n\n`;
+  
+  // Link in Akzentfarbe
+  content += `{${colors.accent}-fg}🔗 ${item.link}{/${colors.accent}-fg}\n`;
+  
+  feedBox.setContent(content);
+  screen.render();
   
   feedBox.setContent(content);
   screen.render();
@@ -88,13 +106,14 @@ export async function showRssFeedScreen(
     top: 0,
     left: 0,
     width: 'shrink',
-    height: '90%',
+    height: '95%',
+    padding: 1,
     style: { bg: colors.background },
     keys: true,
     scrollable: true,
     alwaysScroll: true,
     mouse: true,
-    content: `Lade ${feedConfig.title}...`,
+    content: `Lade ${feedConfig.title}...${' '.repeat(getScreenWidth(screen) - (8 + feedConfig.title.length))}`,
     tags: true,
     // Speichere den Feed-Titel als private Option
     _feedTitle: feedConfig.title

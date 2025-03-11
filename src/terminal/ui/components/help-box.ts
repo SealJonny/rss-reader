@@ -20,7 +20,7 @@ export function createHelpBox(screen: blessed.Widgets.Screen, view: View) {
     valign: 'middle',
     style: { 
       bg: colors.background,
-      fg: colors.text.normal,
+      fg: colors.text.muted,
     },
 
     focusable: false,
@@ -30,11 +30,11 @@ export function createHelpBox(screen: blessed.Widgets.Screen, view: View) {
   });
 
   if (view === "rss-feed") {
-    helpBox.setContent('Favorize (f), Next (down), Previous (up), Back to main-screen (q)');
+    helpBox.setContent('                 [f] Favorisieren  [↑/↓] Navigieren  [q] Zurück');
   } else if (view === "main-screen") {
-    helpBox.setContent('                Select (enter), (Up), (Down) Exit (ctrl + c; esc)');
+    helpBox.setContent('[enter] Auswählen  [↑/↓] Navigieren  [ctrl + c | esc] Verlassen');
   } else if (view === "nested-list") {
-    helpBox.setContent('                 Select (enter), Back to main List (q, backspace)');
+    helpBox.setContent('    [enter] Auswählen  [↑/↓] Navigieren  [q | backspace] Zurück');
   }
 
   // Dem Screen anhängen

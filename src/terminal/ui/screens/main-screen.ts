@@ -2,6 +2,7 @@ import blessed from 'blessed';
 import { createHelpBox } from '../components/help-box';
 import { colors, formatHeading } from '../themes/default-theme';
 import { createSelectableList, ListItem } from '../components/selectable-list';
+import { colorText, hexToRgb } from '../utils/animation-utils';
 
 /**
  * Kategorien für die Untermenüs
@@ -60,7 +61,7 @@ export async function showMainScreen(screen: blessed.Widgets.Screen): Promise<nu
       },
     });
 
-    titleBox.setContent(`✻  Welcome to the RSS Feed Reader!`);
+    titleBox.setContent(`${colorText("✻", hexToRgb(colors.secondary))}  Welcome to the RSS Feed Reader!`);
 
     // Untertitel
     const subtitleBox = blessed.box({
@@ -115,7 +116,8 @@ export async function showMainScreen(screen: blessed.Widgets.Screen): Promise<nu
     const list = createSelectableList(screen, mainScreenBox, items, {
       top: 9,
       left: 0,
-      height: items.length
+      height: items.length,
+      padding: { left: 1, right: 1 }
     });
     
     list.focus();

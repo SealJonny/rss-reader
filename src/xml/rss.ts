@@ -31,7 +31,6 @@ export async function fetchRss(url: string): Promise<NewsItem[]> {
 
         return news;
     } catch (error) {
-        console.error("Error fetching RSS:", error);
         return [];
     }
 }

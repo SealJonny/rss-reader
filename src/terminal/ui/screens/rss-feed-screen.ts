@@ -2,10 +2,13 @@ import blessed from 'blessed';
 import { NewsItem } from "../../../interfaces/news-item";
 import { fetchRss } from "../../../xml/rss";
 import { createErrorBox } from "../utils/ui-utils";
+import { wait } from "../utils/animation-utils";
 import { colors } from '../themes/default-theme';
 import { getScreenWidth } from '../utils/feed-utils';
 
 export type FeedType = "general-feed" | "favorites-feed" | "technical-feed" | "economical-feed" | "political-feed" | "other-feeds";
+
+let errorBox: blessed.Widgets.BoxElement;
 
 /**
  * Interface für Feed-Konfiguration
@@ -142,7 +145,7 @@ export async function showRssFeedScreen(
       feedBox.setContent(`Kein URL konfiguriert für: ${feedConfig.title}`);
     }
   } catch (error) {
-    createErrorBox(screen, `Fehler beim Abrufen der Nachrichten: ${error}`);
+    errorBox = createErrorBox(screen, `Fehler beim Abrufen der Nachrichten: ${error}`); 
   }
 
   // Tastatur-Ereignishandler einrichten
@@ -150,7 +153,7 @@ export async function showRssFeedScreen(
     // Favorisieren-Funktion
     feedBox.key(['f'], () => {
       // TODO: Implementiere das Favorisieren
-      feedBox.setContent('Aktueller Artikel wurde favorisiert!');
+      feedBox.setContent('✨Aktueller Artikel wurde favorisiert!✨');
       screen.render();
       // Nach kurzer Verzögerung wieder den Artikel anzeigen
       setTimeout(() => {
@@ -176,6 +179,10 @@ export async function showRssFeedScreen(
   // Warten, bis der Benutzer zurück zum Hauptmenü möchte
   await new Promise<void>((resolve) => {
     feedBox.key(['q'], () => {
+      if (errorBox) {
+        errorBox.setContent(' ')
+        errorBox.destroy();
+      }
       resolve();
     });
   });

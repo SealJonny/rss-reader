@@ -1,4 +1,5 @@
 import blessed from 'blessed';
+import open from 'open';
 import { NewsItem } from "../../../interfaces/news-item";
 import { fetchRss } from "../../../xml/rss";
 import { createErrorBox } from "../utils/ui-utils";
@@ -153,7 +154,7 @@ export async function showRssFeedScreen(
     // Favorisieren-Funktion
     feedBox.key(['f'], () => {
       // TODO: Implementiere das Favorisieren
-      feedBox.setContent('✨Aktueller Artikel wurde favorisiert!✨');
+      feedBox.setContent('✨ Aktueller Artikel wurde favorisiert! ✨');
       screen.render();
       // Nach kurzer Verzögerung wieder den Artikel anzeigen
       setTimeout(() => {
@@ -161,6 +162,16 @@ export async function showRssFeedScreen(
           showNewsItem(newsItems[currentIndex], currentIndex, newsItems.length, feedBox, screen);
         }
       }, 1000);
+    });
+
+    feedBox.key(['o'], () => {
+      let test = open(newsItems[currentIndex].link).catch((err) => {
+        errorBox = createErrorBox(screen, `Fehler beim Öffnen des Links: ${err}`);
+      });
+      if (errorBox) {
+        errorBox.setContent(' ')
+        errorBox.destroy();
+      }
     });
     
     // Navigation: Nächster Artikel

@@ -30,7 +30,7 @@ export function createHelpBox(screen: blessed.Widgets.Screen, view: View) {
   });
 
   if (view === "rss-feed") {
-    helpBox.setContent('                 [f] Favorisieren  [↑/↓] Navigieren  [q] Zurück');
+    helpBox.setContent(' [o] Link Öffnen [f] Favorisieren  [↑/↓] Navigieren  [q] Zurück');
   } else if (view === "main-screen") {
     helpBox.setContent('[enter] Auswählen  [↑/↓] Navigieren  [ctrl + c | esc] Verlassen');
   } else if (view === "nested-list") {

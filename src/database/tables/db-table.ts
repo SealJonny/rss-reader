@@ -1,4 +1,5 @@
 import { Database } from "sqlite";
+import { EntityUpdateError } from "../../errors/database";
 export class DbTable {
     protected readonly dbConnection: Database;
     protected readonly tableName: string;
@@ -9,13 +10,19 @@ export class DbTable {
     }
 
     protected async executeUpdateOrDelete(query: string, ...params: any[]): Promise<boolean> {
-        try {
-            const result = await this.dbConnection.run(query, ...params);
-            return result.changes! > 0;
-        } catch (error) {
-            console.error("Error while executing query:", error);
-            return false;
+      const result = await this.dbConnection.run(query, ...params);
+      return result.changes! > 0;
+    }
+
+    protected async executeUpdate(query: string, ...params: any[]): Promise<boolean> {
+      try {
+        return this.executeUpdateOrDelete(query, ...params);
+      } catch (error: any) {
+        if (error instanceof Error) {
+          throw new EntityUpdateError(error.message, this.tableName);
         }
+        throw new EntityUpdateError(error, this.tableName);
+      }
     }
 
     protected async executeInsert(query: string, ...params: any[]): Promise<boolean> {
@@ -55,7 +62,7 @@ export class DbTable {
 
         const conditions = keys.map(key => `${key} = ?`).join(" AND ");
         const values = keys.map(key => (criteria as any)[key]);
-        
+
         const query = `SELECT * FROM ${this.tableName} WHERE ${conditions}`;
         return {query: query, values: values};
     }

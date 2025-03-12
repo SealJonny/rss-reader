@@ -1,5 +1,7 @@
 import db from "./database";
 import { NewsItem } from "../interfaces/news-item";
+import { sha256 } from "./utils/sha256";
+import { RssFeedEmptyError, RssFeedNotFoundError } from "../errors/rss-feed";
 
 async function main() {
     await db.initialize();
@@ -25,7 +27,18 @@ async function main() {
     console.log("First", await db.join.getNewsForCategory(business?.id!));
     db.news.delete(found?.id!);
     console.log("Second", await db.join.getNewsForCategory(business?.id!));
+    if (found)
+      console.log(sha256(found));
+    else
+      console.log("no");
 
+    try {
+      throw new RssFeedEmptyError("tst msg", "hhtpps");
+    } catch(err) {
+      if (err instanceof RssFeedEmptyError) {
+        console.log(err.message, err.link);
+      }
+    }
 }
 
 main().catch(e => console.error(e));

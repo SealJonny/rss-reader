@@ -3,6 +3,7 @@ import { open, Database } from "sqlite";
 import { Categories } from "./tables/categories";
 import { News } from "./tables/news";
 import { NewsCategories } from "./tables/news-categories";
+import { RssFeeds } from "./tables/rss-feeds";
 
 /////////////
 // General //
@@ -11,6 +12,7 @@ export class Db {
     public categories!: Categories;
     public news!: News;
     public join!: NewsCategories;
+    public rssFeeds!: RssFeeds;
 
     public async initialize(): Promise<void> {
         const db = await open({
@@ -20,6 +22,8 @@ export class Db {
         this.categories = new Categories(db, "categories");
         this.news = new News(db, "news");
         this.join = new NewsCategories(db, "news_categories");
+        this.rssFeeds = new RssFeeds(db, "rss_feeds");
+
         await this.initTables(db);
     }
 
@@ -39,7 +43,8 @@ export class Db {
                 pubDate TEXT,
                 description TEXT,
                 creationDate TEXT,
-                isFavorite INTEGER
+                isFavorite INTEGER,
+                hash TEXT
             );
         `;
 
@@ -53,11 +58,19 @@ export class Db {
             );
         `;
 
+        const rss_feeds = `
+            CREATE TABLE IF NOT EXISTS rss_feeds (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                link TEXT NOT NULL
+            );
+        `;
+
         // Activate foreign keys integrity
         db.exec("PRAGMA foreign_keys = ON;");
         await db.exec(categories);
         await db.exec(news);
         await db.exec(categories_news);
+        await db.exec(rss_feeds);
     }
 }
 

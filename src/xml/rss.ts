@@ -1,7 +1,7 @@
 import { JSDOM } from "jsdom";
 import { NewsItem } from "../interfaces/news-item";
 
-export async function fetchRss(url: string): Promise<NewsItem[]> {
+export async function fetchRss(url: string): Promise<NewsItem[] | null> {
     try {
         const response = await fetch(url);
         const text = await response.text();
@@ -31,7 +31,6 @@ export async function fetchRss(url: string): Promise<NewsItem[]> {
 
         return news;
     } catch (error) {
-        console.error("Error fetching RSS:", error);
-        return [];
+      return null;
     }
 }

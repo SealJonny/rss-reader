@@ -1,7 +1,8 @@
 export interface NewsItem {
-    id: number | undefined;
+    id?: number;
     title: string;
     link: string;
     pubDate: string;
     description: string;
+    hash?: string;
 }

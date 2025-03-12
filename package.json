@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "blessed": "^0.1.81",
+    "dotenv": "^16.4.7",
     "jsdom": "^26.0.0",
     "open": "^10.1.0",
     "sqlite": "^5.1.1",

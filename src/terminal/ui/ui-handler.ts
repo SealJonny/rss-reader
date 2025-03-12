@@ -26,6 +26,9 @@ export async function main() {
       // Bestätigungsnachricht anzeigen
       const confirmBox = createConfirmBox(screen, 'Press ESC oder Ctrl+C um zu beenden');
       // Nach 3 Sekunden wird automatisch quitPending zurückgesetzt
+      setTimeout(() => {
+        quitPending = false;
+      }, 3000);
     } else {
       process.exit(0);
     }

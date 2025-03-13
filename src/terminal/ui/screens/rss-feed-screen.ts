@@ -5,7 +5,7 @@ import { fetchRss } from "../../../xml/rss";
 import { createErrorBox } from "../utils/ui-utils";
 import { wait } from "../utils/animation-utils";
 import { colors } from '../themes/default-theme';
-import { getScreenWidth } from '../utils/feed-utils';
+import { getScreenWidth, formatTerminalText } from '../utils/feed-utils';
 
 export type FeedType = "general-feed" | "favorites-feed" | "technical-feed" | "economical-feed" | "political-feed" | "other-feeds";
 
@@ -57,35 +57,34 @@ function showNewsItem(
   feedBox: blessed.Widgets.BoxElement,
   screen: blessed.Widgets.Screen
 ): void {
-  // KORRIGIERT: Erst Inhalt leeren und dann rendern
+  // Erst Inhalt leeren und dann rendern
   feedBox.setContent('');
   screen.render();
-  
-  
+
+
   // Neuen Inhalt erstellen und setzen
   let content = '';
   // Navigations-Header mit Feed-Titel
   content += `{bold}{${colors.accent}-fg}${index + 1}/${total} - ${feedBox.options._feedTitle || ''}{/${colors.accent}-fg}{/bold}\n`;
-  
+
   // Horizontale Linie
-  
   content += `{${colors.secondary}-fg}${'─'.repeat(getScreenWidth(screen) - 2)}{/${colors.secondary}-fg}\n\n`;
-  
+
   // Titel hervorheben
-  content += `{bold}{${colors.primary}-fg}📰 ${item.title}{/${colors.primary}-fg}{/bold}\n\n`;
-  
+  content += `{bold}{${colors.primary}-fg}${formatTerminalText("📰 ", item.title, getScreenWidth(screen))}{/${colors.primary}-fg}{/bold}\n\n`;
+
   // Datum in Sekundärfarbe
   content += `{${colors.secondary}-fg}📅 ${item.pubDate}{/${colors.secondary}-fg}\n\n`;
-  
+
   // Beschreibung mit Einrückung für bessere Lesbarkeit
-  content += `{white-fg}📖 ${item.description.replace(/\n/g, '\n   ')}{/white-fg}\n\n`;
-  
+  content += `{white-fg}${formatTerminalText("📖 ", item.description, getScreenWidth(screen))}{/white-fg}\n\n`;
+
   // Link in Akzentfarbe
-  content += `{${colors.accent}-fg}🔗 ${item.link}{/${colors.accent}-fg}\n`;
-  
+  content += `{${colors.accent}-fg}${formatTerminalText("🔗 ", item.link, getScreenWidth(screen))}{/${colors.accent}-fg}\n`;
+
   feedBox.setContent(content);
   screen.render();
-  
+
   feedBox.setContent(content);
   screen.render();
 }
@@ -101,10 +100,10 @@ export async function showRssFeedScreen(
   feedType: FeedType
 ): Promise<blessed.Widgets.BoxElement> {
   let currentIndex: number = 0;
-  
+
   // Feed-Konfiguration abrufen
   const feedConfig = feedConfigs[feedType] || feedConfigs["general-feed"];
-  
+
   // Container für den Feed erstellen
   const feedBox = blessed.box({
     top: 0,
@@ -136,17 +135,17 @@ export async function showRssFeedScreen(
       feedBox.setContent('Keine Favoriten verfügbar');
     } else if (feedConfig.url) {
       newsItems = await fetchRss(feedConfig.url);
-      
+
       if (newsItems.length === 0) {
         throw new Error("Keine Nachrichten gefunden.");
       }
-      
+
       showNewsItem(newsItems[currentIndex], currentIndex, newsItems.length, feedBox, screen);
     } else {
       feedBox.setContent(`Kein URL konfiguriert für: ${feedConfig.title}`);
     }
   } catch (error) {
-    errorBox = createErrorBox(screen, `Fehler beim Abrufen der Nachrichten: ${error}`); 
+    errorBox = createErrorBox(screen, `Fehler beim Abrufen der Nachrichten: ${error}`);
   }
 
   // Tastatur-Ereignishandler einrichten
@@ -173,13 +172,13 @@ export async function showRssFeedScreen(
         errorBox.destroy();
       }
     });
-    
+
     // Navigation: Nächster Artikel
     feedBox.key(['down', 'm'], () => {
       currentIndex = (currentIndex + 1) % newsItems.length;
       showNewsItem(newsItems[currentIndex], currentIndex, newsItems.length, feedBox, screen);
     });
-    
+
     // Navigation: Vorheriger Artikel
     feedBox.key(['up', 'n'], () => {
       currentIndex = currentIndex - 1 >= 0 ? currentIndex - 1 : newsItems.length - 1;
@@ -197,6 +196,6 @@ export async function showRssFeedScreen(
       resolve();
     });
   });
-  
+
   return feedBox;
 }

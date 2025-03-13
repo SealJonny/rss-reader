@@ -1,23 +1,23 @@
 import { Database } from "sqlite";
-import { DbTable } from "./db-table";
+import { DbTable } from "../db-table";
 import { RssFeed } from "../../interfaces/rss-feed";
 
-export class RssFeeds extends DbTable {
+export class RssFeeds extends DbTable<RssFeed> {
   constructor(dbConnection: Database, tableName: string) {
     super(dbConnection, tableName);
   }
 
-  public async add(rssFeed: RssFeed): Promise<boolean> {
-    const query = `INSERT INTO ${this.tableName} (link) VALUES (?)`;
-    return await this.executeInsert(query, rssFeed.link);
+  public async add(rssFeed: RssFeed): Promise<RssFeed | undefined> {
+    const query = `INSERT INTO ${this.tableName} (name, link) VALUES (?, ?)`;
+    return await this.executeInsert(query, rssFeed.name, rssFeed.link);
   }
 
-  public async update(id: number, rssFeed: RssFeed): Promise<boolean> {
-    const query = `UPDATE ${this.tableName} SET link = ? WHERE id = ?`;
-    return await this.executeUpdateOrDelete(query, rssFeed.link, id);
+  public async update(id: number, rssFeed: RssFeed): Promise<RssFeed | undefined> {
+    const query = `UPDATE ${this.tableName} SET name = ?, link = ? WHERE id = ?`;
+    return await this.executeUpdate(query, rssFeed.name, rssFeed.link, id);
   }
 
-  public async save(rssFeed: RssFeed): Promise<boolean> {
+  public async save(rssFeed: RssFeed): Promise<RssFeed | undefined> {
     if (typeof rssFeed.id === "undefined") {
       return await this.add(rssFeed);
     }
@@ -26,11 +26,16 @@ export class RssFeeds extends DbTable {
 
   public async delete(id: number): Promise<boolean>  {
     const query = `DELETE FROM ${this.tableName} WHERE id = ?`;
-    return await this.executeUpdateOrDelete(query, id);
+    return await this.executeDelete(query, id);
   }
 
   public async all(): Promise<RssFeed[]> {
     const query = `SELECT * FROM ${this.tableName}`;
-    return await this.executeMultiFind<RssFeed>(query);
+    return await this.executeMultiFind(query);
+  }
+
+  public async findBy(criteria: Partial<RssFeed>): Promise<RssFeed | undefined> {
+    const result = this.buildQueryFromCriteria(criteria);
+    return await this.executeSingleFind(result.query, result.values);
   }
 }

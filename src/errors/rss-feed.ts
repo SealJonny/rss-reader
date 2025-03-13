@@ -1,5 +1,5 @@
 export class RssFeedError extends Error {
-  public link: string;
+  public readonly link: string;
 
   constructor(msg: string, link: string) {
     super(msg);
@@ -10,4 +10,5 @@ export class RssFeedError extends Error {
 }
 
 export class RssFeedNotFoundError extends RssFeedError {}
+export class RssFeedInvalidError extends RssFeedError {}
 export class RssFeedEmptyError extends RssFeedError {}

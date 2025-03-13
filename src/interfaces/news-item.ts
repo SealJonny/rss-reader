@@ -4,5 +4,7 @@ export interface NewsItem {
     link: string;
     pubDate: string;
     description: string;
+    isFavorite: boolean;
     hash?: string;
+    rssFeedId: number;
 }

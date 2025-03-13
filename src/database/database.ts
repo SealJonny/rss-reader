@@ -4,6 +4,7 @@ import { Categories } from "./tables/categories";
 import { News } from "./tables/news";
 import { NewsCategories } from "./tables/news-categories";
 import { RssFeeds } from "./tables/rss-feeds";
+import { DatabaseConnectionError } from "../errors/database";
 
 export class Db {
   public categories!: Categories;
@@ -12,10 +13,16 @@ export class Db {
   public rssFeeds!: RssFeeds;
 
   public async initialize(): Promise<void> {
-    const db = await open({
-      filename: "database.sqlite",
-      driver: sqlite3.Database
-    });
+    let db: Database;
+    try {
+      db = await open({
+        filename: "database.sqlite",
+        driver: sqlite3.Database
+      });
+    } catch (error) {
+      throw DatabaseConnectionError.from(error);
+    }
+
     this.categories = new Categories(db, "categories");
     this.news = new News(db, "news");
     this.join = new NewsCategories(db, "news_categories");
@@ -35,6 +42,7 @@ export class Db {
     const rss_feeds = `
       CREATE TABLE IF NOT EXISTS rss_feeds (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
         link TEXT NOT NULL
       );
     `;
@@ -50,7 +58,7 @@ export class Db {
         isFavorite INTEGER,
         hash TEXT,
         rss_feed_id INTEGER,
-        FOREIGN KEY (rss_feed_id) REFERENCES rss_feeds(id) ON DELETE CASCADE,
+        FOREIGN KEY (rss_feed_id) REFERENCES rss_feeds(id) ON DELETE CASCADE
       );
     `;
 

@@ -8,13 +8,20 @@ export class RssFeeds extends DbTable<RssFeed> {
   }
 
   public async add(rssFeed: RssFeed): Promise<RssFeed | undefined> {
-    const query = `INSERT INTO ${this.tableName} (name, link) VALUES (?, ?)`;
-    return await this.executeInsert(query, rssFeed.name, rssFeed.link);
+    const query = `
+      INSERT INTO ${this.tableName}
+      (link, title, description, language, lastBuildDate) VALUES (?, ?, ?, ?, ?)
+    `;
+    return await this.executeInsert(query, rssFeed.link, rssFeed.title, rssFeed.description, rssFeed.language, rssFeed.lastBuildDate);
   }
 
   public async update(id: number, rssFeed: RssFeed): Promise<RssFeed | undefined> {
-    const query = `UPDATE ${this.tableName} SET name = ?, link = ? WHERE id = ?`;
-    return await this.executeUpdate(query, rssFeed.name, rssFeed.link, id);
+    const query = `
+      UPDATE ${this.tableName}
+      SET link = ?, title = ?, description = ?, language = ?, lastBuildDate = ?
+      WHERE id = ?
+    `;
+    return await this.executeUpdate(query, rssFeed.link, rssFeed.title, rssFeed.description, rssFeed.language, rssFeed.lastBuildDate, id);
   }
 
   public async save(rssFeed: RssFeed): Promise<RssFeed | undefined> {
@@ -25,12 +32,19 @@ export class RssFeeds extends DbTable<RssFeed> {
   }
 
   public async delete(id: number): Promise<boolean>  {
-    const query = `DELETE FROM ${this.tableName} WHERE id = ?`;
+    const query = `
+      DELETE
+      FROM ${this.tableName}
+      WHERE id = ?
+    `;
     return await this.executeDelete(query, id);
   }
 
   public async all(): Promise<RssFeed[]> {
-    const query = `SELECT * FROM ${this.tableName}`;
+    const query = `
+      SELECT *
+      FROM ${this.tableName}
+    `;
     return await this.executeMultiFind(query);
   }
 

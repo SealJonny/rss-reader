@@ -2,9 +2,11 @@ export interface NewsItem {
     id?: number;
     title: string;
     link: string;
-    pubDate: string;
     description: string;
+    creationDate: number;
+    hash: string;
     isFavorite: boolean;
-    hash?: string;
+    source: string | null;
+    pubDate: string | null;
     rssFeedId: number;
 }

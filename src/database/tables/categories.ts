@@ -8,12 +8,19 @@ export class Categories extends DbTable<Category> {
     }
 
     async add(category: Category): Promise<Category | undefined> {
-        const query = `INSERT INTO ${this.tableName} (name) VALUES (?)`;
+        const query = `
+          INSERT INTO ${this.tableName}
+          (name) VALUES (?)
+        `;
         return await this.executeInsert(query, category.name);
     }
 
     async update(id: number, category: Category): Promise<Category | undefined> {
-        const query = `UPDATE ${this.tableName} SET name = ? WHERE id = ?`;
+        const query = `
+          UPDATE ${this.tableName}
+          SET name = ?
+          WHERE id = ?
+        `;
         return await this.executeUpdate(query, category.name, id);
     }
 
@@ -31,8 +38,12 @@ export class Categories extends DbTable<Category> {
     }
 
     async delete(id: number): Promise<boolean> {
-        const query = `DELETE FROM ${this.tableName} WHERE id = ?`;
-        return await this.executeDelete(query, id);
+      const query = `
+        DELETE
+        FROM ${this.tableName}
+        WHERE id = ?
+      `;
+      return await this.executeDelete(query, id);
     }
 
     async findBy(criteria: Partial<Category>): Promise<Category | undefined> {

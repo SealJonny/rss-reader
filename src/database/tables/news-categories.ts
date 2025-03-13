@@ -15,7 +15,7 @@ export class NewsCategories {
     if (isNaN(newsId) || isNaN(categoryId)) {
         return false;
     }
-    const query = `INSERT INTO ${this.tableName} (category_id, news_id) VALUES (?, ?)`;
+    const query = `INSERT INTO ${this.tableName} (categoryId, newsId) VALUES (?, ?)`;
     try {
       const result = await this.dbConnection.run(query, categoryId, newsId)
       return typeof result.lastID === "number";
@@ -27,8 +27,8 @@ export class NewsCategories {
   async getNewsForCategory(categoryId: number): Promise<NewsItem[]> {
     const query = `
       SELECT news.* FROM news
-      JOIN news_categories ON news.id = news_categories.news_id
-      WHERE news_categories.category_id = ?;
+      JOIN news_categories ON news.id = news_categories.newsId
+      WHERE news_categories.categoryId = ?;
     `;
     return await this.dbConnection.all<NewsItem[]>(query, categoryId);
   }
@@ -36,8 +36,8 @@ export class NewsCategories {
   async getCategoriesForNews(newsId: number): Promise<Category[]> {
     const query = `
       SELECT categories.* FROM categories
-      JOIN news_categories ON categories.id = news_categories.category_id
-      WHERE news_categories.news_id = ?;
+      JOIN news_categories ON categories.id = news_categories.categoryId
+      WHERE news_categories.newsId = ?;
     `;
 
     return await this.dbConnection.all<Category[]>(query, newsId);

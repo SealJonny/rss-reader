@@ -18,6 +18,7 @@ export async function fetchRss(url: string): Promise<NewsItem[] | null> {
 
             // Parse description html content
             const tempDom = new JSDOM(description);
+            tempDom.window.document.body.querySelectorAll("a")
             const anchor = tempDom.window.document.querySelector("a");
             const fullArticleLink = anchor ? anchor.href : link;
 
@@ -25,7 +26,12 @@ export async function fetchRss(url: string): Promise<NewsItem[] | null> {
                 title: item.querySelector("title")?.textContent || "",
                 link: fullArticleLink,
                 pubDate: item.querySelector("pubDate")?.textContent || "",
-                description: tempDom.window.document.body.textContent?.trim() || ""
+                source: null,
+                description: tempDom.window.document.body.textContent?.trim() || "",
+                isFavorite: false,
+                rssFeedId: 0,
+                creationDate: Date.now(),
+                hash: "",
             });
         });
 
@@ -34,3 +40,6 @@ export async function fetchRss(url: string): Promise<NewsItem[] | null> {
       return null;
     }
 }
+
+fetchRss("https://www.tagesschau.de/infoservices/alle-meldungen-100~rss2.xml").then(l => console.log(l));
+fetchRss("https://news.google.com/rss/search?q=Technology&hl=de&gl=DE&ceid=DE:de").then(l => console.log(l));

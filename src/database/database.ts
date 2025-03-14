@@ -67,13 +67,13 @@ export class Db {
     `;
 
     const news_categories = `
-        CREATE TABLE IF NOT EXISTS news_categories (
-          categoryId INTEGER,
-          newsId INTEGER,
-          PRIMARY KEY (categoryId, newsId),
-          FOREIGN KEY (categoryId) REFERENCES categories(id) ON DELETE CASCADE,
-          FOREIGN KEY (newsId) REFERENCES news(id) ON DELETE CASCADE
-        );
+      CREATE TABLE IF NOT EXISTS news_categories (
+        categoryId INTEGER,
+        newsId INTEGER,
+        PRIMARY KEY (categoryId, newsId),
+        FOREIGN KEY (categoryId) REFERENCES categories(id) ON DELETE CASCADE,
+        FOREIGN KEY (newsId) REFERENCES news(id) ON DELETE CASCADE
+      );
     `;
 
     // Activate foreign keys integrity

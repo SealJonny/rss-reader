@@ -3,6 +3,26 @@ import { NewsItem } from "../interfaces/news-item";
 import { RssFeedEmptyError } from "../errors/rss-feed";
 import { RssFeed } from "../interfaces/rss-feed";
 
+function parseDescription(data: string | null | undefined): string | null {
+  if (!data) return null;
+
+  let dom = new JSDOM(data);
+  let html = dom.window.document;
+
+  let textParts: string[] = [];
+  html.childNodes.forEach(node => {
+    if (node.nodeType === 3) {
+      textParts.push(node.textContent?.trim() ?? "");
+    }
+    if (node.nodeType === 1) {
+      textParts.push(parseDescription(node.textContent) ?? "");
+    }
+  });
+  const result = textParts.filter(t => t.length > 0).join(" - ");
+  if (result.length === 0) return null;
+  return result;
+}
+
 export async function fetchRss(feed: RssFeed): Promise<NewsItem[] | null> {
     try {
         const response = await fetch(feed.link);
@@ -22,10 +42,8 @@ export async function fetchRss(feed: RssFeed): Promise<NewsItem[] | null> {
             const source = item.querySelector("source")?.getAttribute("url") || null;
             const pubDate = item.querySelector("pubDate")?.textContent || null;
 
-            let description = item.querySelector("description")?.textContent || "";
-            let tempDom = new JSDOM(description);
-            description = tempDom.window.document.body.textContent?.trim() || description;
-            description = description.replace(/\s\s/g, " ");
+            const descriptionXml = item.querySelector("description");
+            const description = parseDescription(descriptionXml?.textContent) ?? descriptionXml?.textContent ?? "";
 
             news.push({
               title: title,
@@ -46,7 +64,7 @@ export async function fetchRss(feed: RssFeed): Promise<NewsItem[] | null> {
     }
 }
 
-fetchRss({title: "h", description: "", language: "", lastBuildDate: 0,
-  link: "https://www.tagesschau.de/infoservices/alle-meldungen-100~rss2.xml" }).then(l => console.log(l));
+//fetchRss({title: "h", description: "", language: "", lastBuildDate: 0,
+//  link: "https://www.tagesschau.de/infoservices/alle-meldungen-100~rss2.xml" }).then(l => console.log(l));
 fetchRss({title: "h", description: "", language: "", lastBuildDate: 0,
   link: "https://news.google.com/rss/search?q=Technology&hl=de&gl=DE&ceid=DE:de" }).then(l => console.log(l));

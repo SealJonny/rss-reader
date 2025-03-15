@@ -7,20 +7,23 @@ function parseDescription(data: string | null | undefined): string | null {
   if (!data) return null;
 
   let dom = new JSDOM(data);
-  let html = dom.window.document;
+  let html = dom.window.document.body || dom.window.document;
 
-  let textParts: string[] = [];
-  html.childNodes.forEach(node => {
-    if (node.nodeType === 3) {
-      textParts.push(node.textContent?.trim() ?? "");
+  function extractText(node: Node): string {
+    if (node.nodeType === 3) { // Text-Node
+      return node.textContent?.trim() ?? "";
     }
-    if (node.nodeType === 1) {
-      textParts.push(parseDescription(node.textContent) ?? "");
+    if (node.nodeType === 1) { // Element-Node
+      return Array.from(node.childNodes)
+        .map(extractText)
+        .filter(text => text.length > 0)
+        .join(" - ");
     }
-  });
-  const result = textParts.filter(t => t.length > 0).join(" - ");
-  if (result.length === 0) return null;
-  return result;
+    return "";
+  }
+
+  let result = extractText(html).trim();
+  return result.length > 0 ? result : null;
 }
 
 export async function fetchRss(feed: RssFeed): Promise<NewsItem[] | null> {
@@ -64,7 +67,7 @@ export async function fetchRss(feed: RssFeed): Promise<NewsItem[] | null> {
     }
 }
 
-//fetchRss({title: "h", description: "", language: "", lastBuildDate: 0,
-//  link: "https://www.tagesschau.de/infoservices/alle-meldungen-100~rss2.xml" }).then(l => console.log(l));
 fetchRss({title: "h", description: "", language: "", lastBuildDate: 0,
-  link: "https://news.google.com/rss/search?q=Technology&hl=de&gl=DE&ceid=DE:de" }).then(l => console.log(l));
+  link: "https://www.tagesschau.de/infoservices/alle-meldungen-100~rss2.xml" }).then(l => console.log(l));
+//fetchRss({title: "h", description: "", language: "", lastBuildDate: 0,
+//  link: "https://news.google.com/rss/search?q=Technology&hl=de&gl=DE&ceid=DE:de" }).then(l => console.log(l));

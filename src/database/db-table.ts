@@ -13,7 +13,7 @@ export abstract class DbTable<T> {
     protected async executeUpdate(query: string, ...params: any[]): Promise<T | undefined> {
       try {
         const result = await this.dbConnection.run(query, ...params);
-        if (typeof result.changes === undefined) {
+        if (typeof result.changes === "undefined") {
           return undefined;
         }
 

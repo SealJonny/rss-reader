@@ -26,7 +26,7 @@ async function main() {
       source: null,
       pubDate: "17.02.2025",
       description: "World",
-      isFavorite: false,
+      isFavorite: true,
       creationDate: 0,
       hash: "",
       rssFeedId: 1

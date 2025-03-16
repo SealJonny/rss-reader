@@ -1,4 +1,5 @@
 import blessed from 'blessed';
+import { colors } from '../themes/default-theme';
 
 /**
  * Zentrale Funktion zum Erstellen einer Bestätigungsbox
@@ -16,7 +17,7 @@ export function createConfirmBox(screen: blessed.Widgets.Screen, message: string
       fg: 'gray',
     }
   });
-  
+
   confirmBox.display(message, timeout, () => {});
   return confirmBox;
 }
@@ -34,13 +35,36 @@ export function createErrorBox(screen: blessed.Widgets.Screen, errorMessage: str
     align: 'left',
     valign: 'middle',
     style: {
-      fg: 'red',
+      fg: colors.text.error,
     },
     content: `Error: ${errorMessage}`,
   });
-  
+
   screen.render();
   return errorBox;
+}
+
+/**
+ * Erstellt eine Notification-Box
+ */
+export function createNotificationBox(screen: blessed.Widgets.Screen, notification: string): blessed.Widgets.BoxElement {
+  const notificationBox = blessed.box({
+    parent: screen,
+    bottom: 0,
+    left: 0,
+    tags: true,
+    width: 'shrink',
+    height: 'shrink',
+    align: 'left',
+    valign: 'middle',
+    style: {
+      fg: colors.green,
+    },
+    content: `${notification}  `,
+  });
+
+  screen.render();
+  return notificationBox;
 }
 
 /**
@@ -51,14 +75,14 @@ export function centerElement(element: blessed.Widgets.BlessedElement, screen: b
   const screenHeight = (screen as any).height || process.stdout.rows;
   const elementWidth = (element as any).width || 0;
   const elementHeight = (element as any).height || 0;
-  
+
   // Zentrieren horizontal
   if (typeof elementWidth === 'number' && typeof screenWidth === 'number') {
     element.left = Math.floor((screenWidth - elementWidth) / 2);
   } else {
     element.left = 'center';
   }
-  
+
   // Zentrieren vertikal
   if (typeof elementHeight === 'number' && typeof screenHeight === 'number') {
     element.top = Math.floor((screenHeight - elementHeight) / 2);

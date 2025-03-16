@@ -4,10 +4,12 @@ export const colors = {
   primary: '#B2A4FF',
   secondary: '#FFB4B4',
   accent: '#D9ACDA',
+  green: '#77DD77',
+  red: '#FF6961',
   text: {
     normal: 'white',
     muted: 'gray',
-    error: 'red'
+    error: '#FF6961'
   },
   background: 'black',
 }

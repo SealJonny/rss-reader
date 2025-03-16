@@ -1,7 +1,7 @@
 import blessed from 'blessed';
 import open from 'open';
 import { NewsItem } from "../../../interfaces/news-item";
-import { createErrorBox } from "../utils/ui-utils";
+import { createErrorBox, createNotificationBox } from "../utils/ui-utils";
 import { colors } from '../themes/default-theme';
 import { getScreenWidth, formatTerminalText } from '../utils/feed-utils';
 import { Category, isSystemCategory, SystemCategory } from '../../../interfaces/category';
@@ -26,8 +26,11 @@ function showNewsItem(
 
   // Neuen Inhalt erstellen und setzen
   let content = '';
+
+  // Todo: Prüfen ob das geht
+  let isFavorite = item.isFavorite ? `${' '.repeat(getScreenWidth(screen) - (2 + feedBox.options._feedTitle.length) - 1)}{${colors.accent}-fg}✻{/${colors.accent}-fg}` : '';
   // Navigations-Header mit Feed-Titel
-  content += `{bold}{${colors.accent}-fg}${index + 1}/${total} - ${feedBox.options._feedTitle || ''}{/${colors.accent}-fg}{/bold}\n`;
+  content += `{bold}{${colors.accent}-fg}${index + 1}/${total} - ${feedBox.options._feedTitle || ''}${isFavorite}{/${colors.accent}-fg}{/bold}\n`;
 
   // Horizontale Linie
   content += `{${colors.secondary}-fg}${'─'.repeat(getScreenWidth(screen) - 2)}{/${colors.secondary}-fg}\n\n`;
@@ -115,25 +118,32 @@ export async function showRssFeedScreen(
     // Favorisieren-Funktion
     feedBox.key(['f'], () => {
       // TODO: Implementiere das Favorisieren
-      db.news.setFavorite(newsItems[currentIndex].id!, !newsItems[currentIndex].isFavorite).then(item => {
-        if (item) {
-          newsItems[currentIndex] = item;
-          if (item.isFavorite) {
-            feedBox.setContent('✨ Aktueller Artikel wurde favorisiert! ✨');
-          } else {
-            feedBox.setContent('✨ Aktueller Artikel wurde aus den Favoriten entfernt! ✨');
-          }
-        }
+      const favoriseNotificatoin = createNotificationBox(screen, ` ✻  Aktueller Artikel wurde favorisiert! ✻`);
+      // db.news.setFavorite(newsItems[currentIndex].id!, !newsItems[currentIndex].isFavorite).then(item => {
+      //   if (item) {
+      //     newsItems[currentIndex] = item;
+      //     if (item.isFavorite) {
+      //       createNotificationBox(screen, '✨ Aktueller Artikel wurde favorisiert! ✨');
+      //       //feedBox.setContent('✨ Aktueller Artikel wurde favorisiert! ✨');
+      //     } else {
+      //       createNotificationBox(screen, '✨ Aktueller Artikel wurde favorisiert! ✨');
+      //       //feedBox.setContent('✨ Aktueller Artikel wurde aus den Favoriten entfernt! ✨');
+      //     }
+      //   }
         screen.render();
         // Nach kurzer Verzögerung wieder den Artikel anzeigen
         setTimeout(() => {
           if (currentIndex < newsItems.length) {
-            showNewsItem(newsItems[currentIndex], currentIndex, newsItems.length, feedBox, screen);
+            // showNewsItem(newsItems[currentIndex], currentIndex, newsItems.length, feedBox, screen);
+            favoriseNotificatoin.setContent(' ')
+            screen.render();
+            favoriseNotificatoin.destroy();
+            screen.render();
           }
-        }, 1000);
+        }, 3500);
       })
 
-    });
+    //});
 
     feedBox.key(['o'], () => {
       let test = open(newsItems[currentIndex].link).catch((err) => {

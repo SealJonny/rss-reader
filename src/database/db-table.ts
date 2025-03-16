@@ -69,7 +69,12 @@ export abstract class DbTable<T> {
       }
 
       const conditions = keys.map(key => `${key} = ?`).join(" AND ");
-      const values = keys.map(key => (criteria as any)[key]);
+      const values = keys.map(key => (criteria as any)[key]).map(v => {
+        if (typeof v === "boolean") {
+          return Number(v);
+        }
+        return v;
+      });
 
       const query = `SELECT * FROM ${this.tableName} WHERE ${conditions}`;
       return {query: query, values: values};

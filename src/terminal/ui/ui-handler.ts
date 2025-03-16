@@ -1,14 +1,18 @@
 import blessed from 'blessed';
 import { showStartAnimation } from './screens/start-animation';
-import { showRssFeedScreen, FeedType } from './screens/rss-feed-screen';
-import { showMainScreen, MainMenuSelection, FeedCategory } from './screens/main-screen';
+import { showRssFeedScreen } from './screens/rss-feed-screen';
+import { showMainScreen, MainMenuSelection } from './screens/main-screen';
 import { createHelpBox } from './components/help-box';
-import { createConfirmBox } from './utils/ui-utils';
+import { createConfirmBox, createErrorBox } from './utils/ui-utils';
+import db from '../../database/database';
+import { Category, SystemCategory } from '../../interfaces/category';
 
 /**
  * Hauptfunktion für die UI-Steuerung
  */
 export async function main() {
+  await db.initialize();
+
   // Erstelle Hauptbildschirm
   const screen = blessed.screen({
     smartCSR: true,
@@ -34,34 +38,30 @@ export async function main() {
     }
   });
 
+  let categories: Category[] = [];
+
   // Hauptprogrammschleife
   while(true) {
+    try {
+      categories = await db.categories.all();
+    } catch(error) {
+      createErrorBox(screen, `${error}`);
+    }
+
     // Hilfsbox anzeigen und Benutzerauswahl vom Hauptscreen holen
     const helpBox = createHelpBox(screen, "main-screen");
-    const menuChoice = await showMainScreen(screen);
+    const menuChoice = await showMainScreen(screen, categories);
     helpBox.destroy();
     screen.render();
-    
+
     // Benutzeraktion verarbeiten
     switch(menuChoice) {
       case MainMenuSelection.GENERAL_FEED:
-        await showFeed(screen, 'general-feed');
+        await showFeed(screen, SystemCategory.GENERAL);
         break;
 
       case MainMenuSelection.FAVORITE_FEED:
-        await showFeed(screen, 'favorites-feed');
-        break;
-
-      case FeedCategory.TECHNICAL:
-        await showFeed(screen, 'technical-feed');
-        break;
-
-      case FeedCategory.ECONOMICAL:
-        await showFeed(screen, 'economical-feed');
-        break;
-
-      case FeedCategory.POLITICAL:
-        await showFeed(screen, 'political-feed');
+        await showFeed(screen, SystemCategory.FAVORITES);
         break;
 
       case MainMenuSelection.START_ANIMATION:
@@ -69,7 +69,10 @@ export async function main() {
         break;
 
       default:
-        // Bei unbekannten Optionen nichts tun
+        let selectedCategory = categories.find(c => c.id === menuChoice)
+        if (selectedCategory) {
+          await showFeed(screen, selectedCategory);
+        }
         break;
     }
   }
@@ -78,10 +81,10 @@ export async function main() {
 /**
  * Hilfsfunktion für das Anzeigen verschiedener Feed-Typen
  */
-async function showFeed(screen: blessed.Widgets.Screen, feedType: FeedType) {
+async function showFeed(screen: blessed.Widgets.Screen, category: Category | SystemCategory) {
   const helpBox = createHelpBox(screen, "rss-feed");
   try {
-    const rssFeed = await showRssFeedScreen(screen, feedType);
+    const rssFeed = await showRssFeedScreen(screen, category);
     rssFeed.focus();
     rssFeed.destroy();
   } finally {

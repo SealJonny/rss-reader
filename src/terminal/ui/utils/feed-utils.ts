@@ -4,6 +4,10 @@ export function getScreenWidth(screen: blessed.Widgets.Screen): number {
   return screen.width as number;
 }
 
+export function getScreenHeight(screen: blessed.Widgets.Screen): number {
+  return screen.height as number;
+}
+
 /**
  * Formatiert einen Text für die Terminalanzeige mit folgenden Funktionen:
  * - Wörter werden nicht am Zeilenende getrennt

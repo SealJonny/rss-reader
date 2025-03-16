@@ -8,6 +8,7 @@ async function main() {
 
     // Create multiple categories
     ["Wirtschaft", "Technik", "Politik"].forEach(async s => await db.categories.save({id: undefined, name: s}));
+    console.log(await db.categories.all());
 
     let feed: RssFeed = {
       title: "Test",
@@ -42,7 +43,7 @@ async function main() {
 
     // Deleting a NewsItem from db, also removes referenced entries in join table
     console.log("First", await db.join.getNewsForCategory(business?.id!));
-    db.news.delete(found?.id!);
+    //db.news.delete(found?.id!);
     console.log("Second", await db.join.getNewsForCategory(business?.id!));
 }
 

@@ -3,33 +3,26 @@ import { createHelpBox } from '../components/help-box';
 import { colors, formatHeading } from '../themes/default-theme';
 import { createSelectableList, ListItem } from '../components/selectable-list';
 import { colorText, hexToRgb } from '../utils/animation-utils';
-
-/**
- * Kategorien für die Untermenüs
- */
-export enum FeedCategory {
-  TECHNICAL = 11,
-  ECONOMICAL = 12,
-  POLITICAL = 13
-}
+import { Categories } from '../../../database/tables/categories';
+import { Category, SystemCategory } from '../../../interfaces/category';
+import { getScreenHeight } from '../utils/feed-utils';
 
 /**
  * Hauptmenü-Auswahl
  */
 export enum MainMenuSelection {
-  ERROR = 0,
-  GENERAL_FEED = 1,
-  CATEGORY_FEED = 2,
-  FAVORITE_FEED = 3,
-  EDIT_URLS = 4,
-  EDIT_FAVORITES = 5,
-  START_ANIMATION = 6
+  GENERAL_FEED = -1,
+  CATEGORY_LIST = -2,
+  FAVORITE_FEED = -3,
+  EDIT_URLS = -4,
+  EDIT_FAVORITES = -5,
+  START_ANIMATION = -6
 }
 
 /**
  * Zeigt den Hauptbildschirm und gibt die Benutzerauswahl zurück
  */
-export async function showMainScreen(screen: blessed.Widgets.Screen): Promise<number> {
+export async function showMainScreen(screen: blessed.Widgets.Screen, categories: Category[]): Promise<number> {
   return new Promise<number>((resolve) => {
     // Erstelle eine Box für den Hauptbildschirm
     const mainScreenBox = blessed.box({
@@ -101,7 +94,7 @@ export async function showMainScreen(screen: blessed.Widgets.Screen): Promise<nu
     const items: ListItem[] = [
       { text: 'Feeds', isHeading: true },
       { text: 'Show General Feed (1)', key: MainMenuSelection.GENERAL_FEED },
-      { text: 'Show Category Feed (2)', key: MainMenuSelection.CATEGORY_FEED },
+      { text: 'Show Category Feed (2)', key: MainMenuSelection.CATEGORY_LIST},
       { text: 'Show Favorite Feed (3)', key: MainMenuSelection.FAVORITE_FEED },
 
       { text: 'Settings', isHeading: true },
@@ -119,7 +112,7 @@ export async function showMainScreen(screen: blessed.Widgets.Screen): Promise<nu
       height: items.length,
       padding: { left: 1, right: 1 }
     });
-    
+
     list.focus();
 
     // Tastatur-Shortcuts einrichten
@@ -131,21 +124,19 @@ export async function showMainScreen(screen: blessed.Widgets.Screen): Promise<nu
     // Funktion zum Anzeigen des Kategorien-Untermenüs
     function showCategoryMenu() {
       const helpBox = createHelpBox(screen, "nested-list");
-      
+
       // Kategorien-Items definieren
       const categoryItems: ListItem[] = [
-        { text: 'Categorized Feeds', isHeading: true },
-        { text: 'Technical Feed (1)', key: FeedCategory.TECHNICAL },
-        { text: 'Economical Feed (2)', key: FeedCategory.ECONOMICAL },
-        { text: 'Political Feed (3)', key: FeedCategory.POLITICAL },
+        { text: 'Categorized Feeds', isHeading: true }
       ];
+      categoryItems.push(...categories.map((c) =>  { return { text: c.name , key: c.id! } as ListItem }));
 
       // Erstelle das Untermenü mit der richtigen Höhe und Breite
       const categoryList = createSelectableList(screen, mainScreenBox, categoryItems, {
         top: 19,
         left: 0,
         width: 'shrink',
-        height: (categoryItems.length + 2),
+        height: Math.min(categoryItems.length + 2, getScreenHeight(screen) - 22),
         border: true,
         padding: { left: 1, right: 1 }
       });
@@ -162,32 +153,11 @@ export async function showMainScreen(screen: blessed.Widgets.Screen): Promise<nu
         list.focus();
       });
 
-      categoryList.key(['1'], () => {
-        resolve(FeedCategory.TECHNICAL);
-        cleanup();
-        helpBox.destroy();
-        categoryList.destroy();
-      });
-      
-      categoryList.key(['2'], () => {
-        resolve(FeedCategory.ECONOMICAL);
-        cleanup();
-        helpBox.destroy();
-        categoryList.destroy();
-      });
-      
-      categoryList.key(['3'], () => {
-        resolve(FeedCategory.POLITICAL);
-        cleanup();
-        helpBox.destroy();
-        categoryList.destroy();
-      });
-      
       // Enter-Taste für das Untermenü
       categoryList.key('enter', () => {
         const selectedIndex = (categoryList as any).selected as number;
         const selectedItem = categoryItems[selectedIndex];
-        
+
         if (selectedItem && !selectedItem.isHeading) {
           resolve(selectedItem.key as number);
           cleanup();
@@ -201,12 +171,12 @@ export async function showMainScreen(screen: blessed.Widgets.Screen): Promise<nu
     list.key(['2'], () => {
       showCategoryMenu();
     });
-    
+
     list.key(['3'], () => {
       resolve(MainMenuSelection.FAVORITE_FEED);
       cleanup();
     });
-    
+
     list.key(['6'], () => {
       resolve(MainMenuSelection.START_ANIMATION);
       cleanup();
@@ -216,10 +186,10 @@ export async function showMainScreen(screen: blessed.Widgets.Screen): Promise<nu
     list.key('enter', () => {
       const selectedIndex = (list as any).selected as number;
       const selectedItem = items[selectedIndex];
-      
+
       if (selectedItem && !selectedItem.isHeading && selectedItem.key !== undefined) {
         // FIXED: Wenn "Show Category Feed" ausgewählt ist, öffne das Untermenü
-        if (selectedItem.key === MainMenuSelection.CATEGORY_FEED) {
+        if (selectedItem.key === MainMenuSelection.CATEGORY_LIST) {
           showCategoryMenu();
         } else {
           resolve(selectedItem.key as number);

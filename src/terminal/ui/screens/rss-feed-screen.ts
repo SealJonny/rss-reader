@@ -1,51 +1,13 @@
 import blessed from 'blessed';
 import open from 'open';
 import { NewsItem } from "../../../interfaces/news-item";
-import { fetchRss } from "../../../xml/rss";
 import { createErrorBox } from "../utils/ui-utils";
-import { wait } from "../utils/animation-utils";
 import { colors } from '../themes/default-theme';
 import { getScreenWidth, formatTerminalText } from '../utils/feed-utils';
-
-export type FeedType = "general-feed" | "favorites-feed" | "technical-feed" | "economical-feed" | "political-feed" | "other-feeds";
+import { Category, isSystemCategory, SystemCategory } from '../../../interfaces/category';
+import db from '../../../database/database';
 
 let errorBox: blessed.Widgets.BoxElement;
-
-/**
- * Interface für Feed-Konfiguration
- */
-interface FeedConfig {
-  url: string;
-  title: string;
-}
-
-// Feed-Konfigurationen
-const feedConfigs: Record<FeedType, FeedConfig> = {
-  "general-feed": {
-    url: "https://news.google.com/rss?hl=de&gl=DE&ceid=DE:de",
-    title: "Allgemeine Nachrichten"
-  },
-  "favorites-feed": {
-    url: "",
-    title: "Favoriten"
-  },
-  "technical-feed": {
-    url: "https://news.google.com/rss/search?q=Technology&hl=de&gl=DE&ceid=DE:de",
-    title: "Technologie-Nachrichten"
-  },
-  "economical-feed": {
-    url: "https://news.google.com/rss/search?q=Wirtschaft&hl=de&gl=DE&ceid=DE:de",
-    title: "Wirtschaftsnachrichten"
-  },
-  "political-feed": {
-    url: "https://news.google.com/rss/search?q=Politik&hl=de&gl=DE&ceid=DE:de",
-    title: "Politische Nachrichten"
-  },
-  "other-feeds": {
-    url: "",
-    title: "Andere Feeds"
-  }
-};
 
 /**
  * Zeigt die Details eines Nachrichtenelements an
@@ -97,12 +59,32 @@ function showNewsItem(
  */
 export async function showRssFeedScreen(
   screen: blessed.Widgets.Screen,
-  feedType: FeedType
+  category: Category | SystemCategory,
 ): Promise<blessed.Widgets.BoxElement> {
   let currentIndex: number = 0;
 
-  // Feed-Konfiguration abrufen
-  const feedConfig = feedConfigs[feedType] || feedConfigs["general-feed"];
+  let categoryName = "";
+
+  let newsItems: NewsItem[] = [];
+  try {
+    if (isSystemCategory(category)) {
+      switch (category) {
+        case SystemCategory.GENERAL:
+          newsItems = await db.news.all();
+          categoryName = SystemCategory.GENERAL;
+          break;
+        case SystemCategory.FAVORITES:
+          newsItems = await db.news.all({isFavorite: true});
+          categoryName = SystemCategory.FAVORITES;
+          break;
+      }
+    } else {
+      newsItems = await db.join.getNewsForCategory((category as Category).id!); // Todo: Error Handling
+      categoryName = category.name;
+    }
+  } catch (error) {
+    errorBox = createErrorBox(screen, `Fehler beim Abrufen der Nachrichten: ${error}`);
+  }
 
   // Container für den Feed erstellen
   const feedBox = blessed.box({
@@ -116,51 +98,41 @@ export async function showRssFeedScreen(
     scrollable: true,
     alwaysScroll: true,
     mouse: true,
-    content: `Lade ${feedConfig.title}...${' '.repeat(getScreenWidth(screen) - (8 + feedConfig.title.length))}`,
+    content: `Lade ${categoryName}...${' '.repeat(getScreenWidth(screen) - (8 + categoryName.length))}`,
     tags: true,
     // Speichere den Feed-Titel als private Option
-    _feedTitle: feedConfig.title
+    _feedTitle: categoryName
   });
 
   screen.append(feedBox);
   screen.render();
   feedBox.focus();
 
-  // News-Items laden und anzeigen
-  let newsItems: NewsItem[] = [];
-  try {
-    // Feed-Daten holen
-    if (feedType === "favorites-feed") {
-      // TODO: Implementiere Favoritenabruf aus der Datenbank
-      feedBox.setContent('Keine Favoriten verfügbar');
-    } else if (feedConfig.url) {
-      newsItems = await fetchRss(feedConfig.url);
-
-      if (newsItems.length === 0) {
-        throw new Error("Keine Nachrichten gefunden.");
-      }
-
-      showNewsItem(newsItems[currentIndex], currentIndex, newsItems.length, feedBox, screen);
-    } else {
-      feedBox.setContent(`Kein URL konfiguriert für: ${feedConfig.title}`);
-    }
-  } catch (error) {
-    errorBox = createErrorBox(screen, `Fehler beim Abrufen der Nachrichten: ${error}`);
-  }
-
-  // Tastatur-Ereignishandler einrichten
   if (newsItems.length > 0) {
+    showNewsItem(newsItems[currentIndex], currentIndex, newsItems.length, feedBox, screen);
+
+    // Tastatur-Ereignishandler einrichten
     // Favorisieren-Funktion
     feedBox.key(['f'], () => {
       // TODO: Implementiere das Favorisieren
-      feedBox.setContent('✨ Aktueller Artikel wurde favorisiert! ✨');
-      screen.render();
-      // Nach kurzer Verzögerung wieder den Artikel anzeigen
-      setTimeout(() => {
-        if (currentIndex < newsItems.length) {
-          showNewsItem(newsItems[currentIndex], currentIndex, newsItems.length, feedBox, screen);
+      db.news.setFavorite(newsItems[currentIndex].id!, !newsItems[currentIndex].isFavorite).then(item => {
+        if (item) {
+          newsItems[currentIndex] = item;
+          if (item.isFavorite) {
+            feedBox.setContent('✨ Aktueller Artikel wurde favorisiert! ✨');
+          } else {
+            feedBox.setContent('✨ Aktueller Artikel wurde aus den Favoriten entfernt! ✨');
+          }
         }
-      }, 1000);
+        screen.render();
+        // Nach kurzer Verzögerung wieder den Artikel anzeigen
+        setTimeout(() => {
+          if (currentIndex < newsItems.length) {
+            showNewsItem(newsItems[currentIndex], currentIndex, newsItems.length, feedBox, screen);
+          }
+        }, 1000);
+      })
+
     });
 
     feedBox.key(['o'], () => {
@@ -174,13 +146,13 @@ export async function showRssFeedScreen(
     });
 
     // Navigation: Nächster Artikel
-    feedBox.key(['down', 'm'], () => {
+    feedBox.key(['down', 'j'], () => {
       currentIndex = (currentIndex + 1) % newsItems.length;
       showNewsItem(newsItems[currentIndex], currentIndex, newsItems.length, feedBox, screen);
     });
 
     // Navigation: Vorheriger Artikel
-    feedBox.key(['up', 'n'], () => {
+    feedBox.key(['up', 'k'], () => {
       currentIndex = currentIndex - 1 >= 0 ? currentIndex - 1 : newsItems.length - 1;
       showNewsItem(newsItems[currentIndex], currentIndex, newsItems.length, feedBox, screen);
     });

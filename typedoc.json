@@ -1,0 +1,10 @@
+{
+    "entryPoints": ["src"],
+    "entryPointStrategy": "expand",
+    "out": "docs",
+    "excludePrivate": true,
+    "excludeInternal": true,
+    "exclude": ["**/deprecated/**", "**/node_modules/**"],
+    "theme": "default",
+    "skipErrorChecking": true
+}

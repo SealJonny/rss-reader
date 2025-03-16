@@ -21,5 +21,5 @@
 
 ## Nice-To-Haves
 
-- Speicherung der RSS-News und der Kategorien in einer SQLite-DB 
+- Speicherung der RSS-News und der Kategorien in einer SQLite-DB
 - Nextcloud Integration (Synchronisation der DB)

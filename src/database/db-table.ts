@@ -20,7 +20,7 @@ export abstract class DbTable<T> {
         if (result.changes === 0) {
           return undefined;
         }
-        return await this.executeSingleFind(`SELECT * FROM ${this.tableName} WHERE id = ?`)
+        return await this.executeSingleFind(`SELECT * FROM ${this.tableName} WHERE id = ?`, result.lastID);
       } catch (error) {
         throw EntityUpdateError.from(error, this.tableName);
       }

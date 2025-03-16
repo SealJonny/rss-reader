@@ -41,6 +41,8 @@ async function main() {
         console.log("Successfully inserted an n:m relationship!")
     }
 
+    found = await db.news.setFavorite(found!.id!, true);
+
     // Deleting a NewsItem from db, also removes referenced entries in join table
     console.log("First", await db.join.getNewsForCategory(business?.id!));
     //db.news.delete(found?.id!);

@@ -10,7 +10,7 @@ export abstract class DbTable<T> {
         this.tableName = tableName;
     }
 
-    protected async executeUpdate(query: string, ...params: any[]): Promise<T | undefined> {
+    protected async executeUpdate(id: number, query: string, ...params: any[]): Promise<T | undefined> {
       try {
         const result = await this.dbConnection.run(query, ...params);
         if (typeof result.changes === "undefined") {
@@ -20,15 +20,15 @@ export abstract class DbTable<T> {
         if (result.changes === 0) {
           return undefined;
         }
-        return await this.executeSingleFind(`SELECT * FROM ${this.tableName} WHERE id = ?`, result.lastID);
+        return await this.executeSingleFind(`SELECT * FROM ${this.tableName} WHERE id = ?`, id);
       } catch (error) {
         throw EntityUpdateError.from(error, this.tableName);
       }
     }
 
-    protected async executeDelete(query: string, ...params: any[]): Promise<boolean> {
+    protected async executeDelete(query: string, id: number): Promise<boolean> {
       try {
-        const result = await this.dbConnection.run(query, ...params);
+        const result = await this.dbConnection.run(query, id);
         return result.changes! > 0;
       } catch (error) {
         throw EntityDeleteError.from(error, this.tableName);

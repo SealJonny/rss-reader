@@ -12,7 +12,14 @@ export class RssFeeds extends DbTable<RssFeed> {
       INSERT INTO ${this.tableName}
       (link, title, description, language, lastBuildDate) VALUES (?, ?, ?, ?, ?)
     `;
-    return await this.executeInsert(query, rssFeed.link, rssFeed.title, rssFeed.description, rssFeed.language, rssFeed.lastBuildDate);
+    return await this.executeInsert(
+      query,
+      rssFeed.link,
+      rssFeed.title,
+      rssFeed.description,
+      rssFeed.language,
+      rssFeed.lastBuildDate
+    );
   }
 
   public async update(id: number, rssFeed: RssFeed): Promise<RssFeed | undefined> {
@@ -21,7 +28,16 @@ export class RssFeeds extends DbTable<RssFeed> {
       SET link = ?, title = ?, description = ?, language = ?, lastBuildDate = ?
       WHERE id = ?
     `;
-    return await this.executeUpdate(query, rssFeed.link, rssFeed.title, rssFeed.description, rssFeed.language, rssFeed.lastBuildDate, id);
+    return await this.executeUpdate(
+      id,
+      query,
+      rssFeed.link,
+      rssFeed.title,
+      rssFeed.description,
+      rssFeed.language,
+      rssFeed.lastBuildDate,
+      id
+    );
   }
 
   public async save(rssFeed: RssFeed): Promise<RssFeed | undefined> {

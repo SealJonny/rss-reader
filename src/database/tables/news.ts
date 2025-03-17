@@ -48,7 +48,9 @@ export class News extends DbTable<NewsItem> {
       SET title = ?, link = ?, description = ?, hash = ?, isFavorite = ?, source = ?, pubDate = ?
       WHERE id = ?
     `;
-    return this.sanitize(await this.executeUpdate(query,
+    return this.sanitize(await this.executeUpdate(
+      id,
+      query,
       news.title,
       news.link,
       news.description,
@@ -66,7 +68,12 @@ export class News extends DbTable<NewsItem> {
       SET isFavorite = ?
       WHERE id = ?
     `;
-    return this.sanitize(await this.executeUpdate(query, Number(isFavorite), id));
+    return this.sanitize(await this.executeUpdate(
+      id,
+      query,
+      Number(isFavorite),
+      id
+    ));
   }
 
   /**

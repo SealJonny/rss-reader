@@ -7,7 +7,7 @@ async function main() {
     await db.initialize();
 
     // Create multiple categories
-    ["Wirtschaft", "Technik", "Politik"].forEach(async s => await db.categories.save({id: undefined, name: s}));
+   // ["Wirtschaft", "Technik", "Politik"].forEach(async s => await db.categories.save({id: undefined, name: s}));
     console.log(await db.categories.all());
 
     let feed: RssFeed = {
@@ -17,7 +17,7 @@ async function main() {
       language: "de",
       lastBuildDate: Date.now()
     };
-    feed = await db.rssFeeds.save(feed) ?? feed;
+    //feed = await db.rssFeeds.save(feed) ?? feed;
 
     // Create single news
     let news: NewsItem = {

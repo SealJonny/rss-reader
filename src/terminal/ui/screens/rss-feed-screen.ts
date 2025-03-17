@@ -28,7 +28,7 @@ function showNewsItem(
   let content = '';
 
   // Todo: Prüfen ob das geht
-  let isFavorite = item.isFavorite ? `${' '.repeat(getScreenWidth(screen) - (2 + feedBox.options._feedTitle.length) - 1)}{${colors.accent}-fg}✻{/${colors.accent}-fg}` : '';
+  let isFavorite = item.isFavorite ? `${' '.repeat(getScreenWidth(screen) - (2 + feedBox.options._feedTitle.length) - 9)}{${colors.green}-fg}✻ {/${colors.green}-fg}` : '';
   // Navigations-Header mit Feed-Titel
   content += `{bold}{${colors.accent}-fg}${index + 1}/${total} - ${feedBox.options._feedTitle || ''}${isFavorite}{/${colors.accent}-fg}{/bold}\n`;
 
@@ -111,39 +111,51 @@ export async function showRssFeedScreen(
   screen.render();
   feedBox.focus();
 
+  if (newsItems.length === 0) {
+    feedBox.setContent('Keine Nachrichten verfügbar.');
+    screen.render();
+  }
+
   if (newsItems.length > 0) {
     showNewsItem(newsItems[currentIndex], currentIndex, newsItems.length, feedBox, screen);
 
     // Tastatur-Ereignishandler einrichten
     // Favorisieren-Funktion
     feedBox.key(['f'], () => {
-      // TODO: Implementiere das Favorisieren
-      const favoriseNotificatoin = createNotificationBox(screen, ` ✻  Aktueller Artikel wurde favorisiert! ✻`);
-      // db.news.setFavorite(newsItems[currentIndex].id!, !newsItems[currentIndex].isFavorite).then(item => {
-      //   if (item) {
-      //     newsItems[currentIndex] = item;
-      //     if (item.isFavorite) {
-      //       createNotificationBox(screen, '✨ Aktueller Artikel wurde favorisiert! ✨');
-      //       //feedBox.setContent('✨ Aktueller Artikel wurde favorisiert! ✨');
-      //     } else {
-      //       createNotificationBox(screen, '✨ Aktueller Artikel wurde favorisiert! ✨');
-      //       //feedBox.setContent('✨ Aktueller Artikel wurde aus den Favoriten entfernt! ✨');
-      //     }
-      //   }
-        screen.render();
-        // Nach kurzer Verzögerung wieder den Artikel anzeigen
-        setTimeout(() => {
-          if (currentIndex < newsItems.length) {
-            // showNewsItem(newsItems[currentIndex], currentIndex, newsItems.length, feedBox, screen);
-            favoriseNotificatoin.setContent(' ')
+      db.news.setFavorite(newsItems[currentIndex].id!, !newsItems[currentIndex].isFavorite).then(item => {
+        if (item) {
+          newsItems[currentIndex] = item;
+          let favoriseNotificatoin: blessed.Widgets.BoxElement;
+          if (item.isFavorite) {
+            feedBox.setContent('');
             screen.render();
-            favoriseNotificatoin.destroy();
+            showNewsItem(newsItems[currentIndex], currentIndex, newsItems.length, feedBox, screen);
+            favoriseNotificatoin = createNotificationBox(screen, ' ✻  Aktueller Artikel wurde favorisiert! ✻');
+          } else {
+            feedBox.setContent('');
             screen.render();
+            showNewsItem(newsItems[currentIndex], currentIndex, newsItems.length, feedBox, screen);
+            favoriseNotificatoin = createNotificationBox(screen, ' ✻  Aktueller Artikel wurde aus den Favoriten entfernt! ✻');
           }
-        }, 3500);
+          screen.render();
+          // Nach kurzer Verzögerung wieder den Artikel anzeigen
+          setTimeout(() => {
+            if (currentIndex < newsItems.length) {
+              favoriseNotificatoin.setContent('')
+              screen.render();
+              favoriseNotificatoin.destroy();
+              screen.render();
+              feedBox.setContent('');
+              screen.render();
+              showNewsItem(newsItems[currentIndex], currentIndex, newsItems.length, feedBox, screen);
+              screen.render();
+            }
+          }, 2500);
+        }
+
       })
 
-    //});
+    });
 
     feedBox.key(['o'], () => {
       let test = open(newsItems[currentIndex].link).catch((err) => {

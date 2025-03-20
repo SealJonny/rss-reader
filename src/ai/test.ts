@@ -11,7 +11,9 @@ interface FeedItem {
 }
 
 async function kategorisiereNewsItems(newsItems: NewsItem[], kategorien: string[], numItems: number = 10): Promise<string> {
-  const prompt = `Du erhältst ${numItems} RSS-Feed-News-Items, jedes bestehend aus einem Titel und einer Beschreibung. Deine Aufgabe ist es, jedem Item passende Kategorie(n) aus dieser Liste zuzuweisen: ${kategorien.join(", ")}. Analysiere den Inhalt genau und weise Kategorien basierend auf dem Thema zu, nicht nur auf Schlüsselwörtern.
+  const prompt = `Du erhältst ${numItems} RSS-Feed-News-Items, jedes bestehend aus einem Titel und einer Beschreibung.
+Deine Aufgabe ist es, jedem Item passende Kategorie(n) aus dieser Liste zuzuweisen: ${kategorien.join(", ")}.
+Analysiere den Inhalt genau und weise Kategorien basierend auf dem Thema zu, nicht nur auf Schlüsselwörtern.
 
 **Regeln**:
 - Weise einem Item mehrere, eine oder gar keine Kategorie zu.

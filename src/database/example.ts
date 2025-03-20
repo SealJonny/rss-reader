@@ -12,12 +12,12 @@ async function main() {
 
     let feed: RssFeed = {
       title: "Test",
-      link: "ahsdfkaslfjalskjföal",
+      link: "https://news.google.com/rss/search?q=Technology&hl=de&gl=DE&ceid=DE:de",
       description: "Test Rssfeed",
       language: "de",
       lastBuildDate: Date.now()
     };
-    //feed = await db.rssFeeds.save(feed) ?? feed;
+    feed = await db.rssFeeds.save(feed) ?? feed;
 
     // Create single news
     let news: NewsItem = {

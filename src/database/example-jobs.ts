@@ -22,6 +22,8 @@ async function insertExample() {
 async function main() {
   await db.initialize();
   await insertExample();
+  let test = await db.news.setFavorite(1, true);
+  test = await db.news.setProcessed(1, true);
 
   await db.news.deleteAllOlderThanOneDay();
 }

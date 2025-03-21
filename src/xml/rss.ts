@@ -44,6 +44,7 @@ function parseNewsItem(item: Element, feedId: number): NewsItem {
     isFavorite: false,
     source: source,
     pubDate: pubDate,
+    isProcessed: false,
     rssFeedId: feedId
   };
 }

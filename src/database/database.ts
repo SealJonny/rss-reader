@@ -59,6 +59,7 @@ export class Db {
         creationDate INTEGER NOT NULL,
         hash TEXT NOT NULL,
         isFavorite INTEGER NOT NULL,
+        isProcessed INTEGER NOT NULL,
         source TEXT,
         pubDate TEXT,
         rssFeedId INTEGER,

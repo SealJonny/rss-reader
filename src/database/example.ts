@@ -1,6 +1,5 @@
 import db from "./database";
 import { NewsItem } from "../interfaces/news-item";
-import { sha256 } from "./utils/sha256";
 import { RssFeed } from "../interfaces/rss-feed";
 
 async function main() {
@@ -29,6 +28,7 @@ async function main() {
       isFavorite: true,
       creationDate: 0,
       hash: "",
+      isProcessed: false,
       rssFeedId: 1
     };
     news = await db.news.save(news) ?? news;

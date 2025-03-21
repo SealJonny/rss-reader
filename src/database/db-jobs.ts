@@ -20,6 +20,7 @@ export class DbJobs extends EventEmitter {
     this.emit("complete");
   }
 
-  async cleanupNews() {
+  async categoriesAllNews() {
+
   }
 }

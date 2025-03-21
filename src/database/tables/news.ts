@@ -2,8 +2,7 @@ import { Database } from "sqlite";
 import { DbTable } from "../db-table";
 import { NewsItem } from "../../interfaces/news-item";
 import { sha256 } from "../utils/sha256";
-import { DatabaseError, EntityDeleteError, EntityMultiCreateError, EntityUpdateError, QueryInvalidError } from "../../errors/database";
-import { queryObjects } from "v8";
+import { EntityMultiCreateError } from "../../errors/database";
 
 export class News extends DbTable<NewsItem> {
   constructor(dbConnection: Database, tableName: string) {
@@ -11,8 +10,10 @@ export class News extends DbTable<NewsItem> {
   }
 
   private sanitize(news: NewsItem | undefined): NewsItem | undefined {
-    if (news)
+    if (news) {
       news.isFavorite = Boolean(news.isFavorite)
+      news.isProcessed = Boolean(news.isProcessed);
+    }
     return news;
   }
 
@@ -20,6 +21,7 @@ export class News extends DbTable<NewsItem> {
     return newsList.map(n => {
       if (n)
         n.isFavorite = Boolean(n.isFavorite)
+        n.isProcessed = Boolean(n.isProcessed);
       return n;
     });
   }
@@ -27,8 +29,8 @@ export class News extends DbTable<NewsItem> {
   async add(news: NewsItem): Promise<NewsItem | undefined> {
     const query = `
       INSERT INTO ${this.tableName}
-      (title, link, description, creationDate, hash, isFavorite, source, pubDate, rssFeedId)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (title, link, description, creationDate, hash, isFavorite, source, pubDate, isProcessed, rssFeedId)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
     return this.sanitize(await this.executeInsert(
       query,
@@ -40,6 +42,7 @@ export class News extends DbTable<NewsItem> {
       0,
       news.source,
       news.pubDate,
+      0,
       news.rssFeedId
     ));
   }
@@ -47,13 +50,24 @@ export class News extends DbTable<NewsItem> {
   async addAll(newsItems: NewsItem[]) {
     if (newsItems.length === 0) return false;
 
-    const placeholders = newsItems.map(() => "(?, ?, ?, ?, ?, ?, ?, ?, ?)").join(", ");
+    const placeholders = newsItems.map(() => "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").join(", ");
     const query = `
       INSERT INTO ${this.tableName}
-      (title, link, description, creationDate, hash, isFavorite, source, pubDate, rssFeedId)
+      (title, link, description, creationDate, hash, isFavorite, source, pubDate, isProcessed, rssFeedId)
       VALUES ${placeholders}
     `;
-    const values = newsItems.flatMap(news => [news.title, news.link, news.description, Date.now(), sha256(news), 0, news.source, news.pubDate, news.rssFeedId]);
+    const values = newsItems.flatMap(news => [
+      news.title,
+      news.link,
+      news.description,
+      Date.now(),
+      sha256(news),
+      0,
+      news.source,
+      news.pubDate,
+      0,
+      news.rssFeedId
+    ]);
 
     try {
       await this.dbConnection.run("BEGIN TRANSACTION");
@@ -76,7 +90,7 @@ export class News extends DbTable<NewsItem> {
   async update(id: number, news: NewsItem): Promise<NewsItem | undefined> {
     const query = `
       UPDATE ${this.tableName}
-      SET title = ?, link = ?, description = ?, hash = ?, isFavorite = ?, source = ?, pubDate = ?
+      SET title = ?, link = ?, description = ?, hash = ?, isFavorite = ?, source = ?, pubDate = ?, isProcessed = ?
       WHERE id = ?
     `;
     return this.sanitize(await this.executeUpdate(
@@ -89,6 +103,21 @@ export class News extends DbTable<NewsItem> {
       Number(news.isFavorite),
       news.source,
       news.pubDate,
+      news.isProcessed,
+      id
+    ));
+  }
+
+  async setProcessed(id: number, isProcessed: boolean): Promise<NewsItem | undefined> {
+    const query = `
+      UPDATE ${this.tableName}
+      SET isProcessed = ?
+      WHERE id = ?
+    `;
+    return this.sanitize(await this.executeUpdate(
+      id,
+      query,
+      Number(isProcessed),
       id
     ));
   }

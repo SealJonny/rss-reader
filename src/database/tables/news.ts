@@ -2,7 +2,7 @@ import { Database } from "sqlite";
 import { DbTable } from "../db-table";
 import { NewsItem } from "../../interfaces/news-item";
 import { sha256 } from "../utils/sha256";
-import { EntityMultiCreateError } from "../../errors/database";
+import { EntityMultiCreateError, EntityMultiUpdateError } from "../../errors/database";
 
 export class News extends DbTable<NewsItem> {
   constructor(dbConnection: Database, tableName: string) {
@@ -52,7 +52,7 @@ export class News extends DbTable<NewsItem> {
 
     const placeholders = newsItems.map(() => "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").join(", ");
     const query = `
-      INSERT INTO ${this.tableName}
+      INSERT OR IGNORE INTO ${this.tableName}
       (title, link, description, creationDate, hash, isFavorite, source, pubDate, isProcessed, rssFeedId)
       VALUES ${placeholders}
     `;
@@ -109,6 +109,9 @@ export class News extends DbTable<NewsItem> {
   }
 
   async setProcessed(id: number, isProcessed: boolean): Promise<NewsItem | undefined> {
+    if (isNaN(id)) {
+      return;
+    }
     const query = `
       UPDATE ${this.tableName}
       SET isProcessed = ?
@@ -120,6 +123,31 @@ export class News extends DbTable<NewsItem> {
       Number(isProcessed),
       id
     ));
+  }
+
+  async setProcessedBatch(ids: number[], isProcessed: boolean): Promise<void> {
+    ids = ids.filter(i => !isNaN(i));
+    if (ids.length === 0) {
+      return;
+    }
+
+    const idsString = ids.map(() => "?").join(", ");
+    const query = `
+      UPDATE ${this.tableName}
+      SET isProcessed = ?
+      WHERE id IN (${idsString})
+    `;
+
+    const values = [Number(isProcessed), ...ids];
+
+    try {
+      await this.dbConnection.run("BEGIN TRANSACTION");
+      await this.dbConnection.run(query, values);
+      await this.dbConnection.run("COMMIT");
+    } catch (error) {
+      await this.dbConnection.run("ROLLBACK");
+      throw EntityMultiUpdateError.from(error, this.tableName);
+    }
   }
 
   async setFavorite(id: number, isFavorite: boolean): Promise<NewsItem | undefined> {
@@ -166,7 +194,7 @@ export class News extends DbTable<NewsItem> {
   }
 
   /**
-   * Delete all {@link NewsItem} which are older than 1 day
+   * Delete all {@link NewsItem} which are older than 1 day and are not favorites
    *
    * @throws {EntityDeleteError} If deleting fails
    */
@@ -175,7 +203,7 @@ export class News extends DbTable<NewsItem> {
     const query = `
       DELETE
       FROM ${this.tableName}
-      WHERE creationDate <= ?
+      WHERE creationDate <= ? AND isFavorite = 0
     `;
     try {
       await this.dbConnection.run("BEGIN TRANSACTION");

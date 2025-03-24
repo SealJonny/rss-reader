@@ -39,11 +39,11 @@ export class Db {
       );
     `;
 
-    const rss_feeds = `
+    const rssFeeds = `
       CREATE TABLE IF NOT EXISTS rss_feeds (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
         link TEXT NOT NULL UNIQUE,
+        title TEXT NOT NULL,
         description TEXT NOT NULL,
         language TEXT,
         lastBuildDate INTEGER
@@ -53,11 +53,11 @@ export class Db {
     const news = `
       CREATE TABLE IF NOT EXISTS news (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        hash TEXT NOT NULL UNIQUE,
         title TEXT NOT NULL,
         link TEXT NOT NULL,
         description TEXT NOT NULL,
         creationDate INTEGER NOT NULL,
-        hash TEXT NOT NULL,
         isFavorite INTEGER NOT NULL,
         isProcessed INTEGER NOT NULL,
         source TEXT,
@@ -67,7 +67,7 @@ export class Db {
       );
     `;
 
-    const news_categories = `
+    const newsCategories = `
       CREATE TABLE IF NOT EXISTS news_categories (
         categoryId INTEGER,
         newsId INTEGER,
@@ -80,9 +80,9 @@ export class Db {
     // Activate foreign keys integrity
     db.exec("PRAGMA foreign_keys = ON;");
     await db.exec(categories);
-    await db.exec(rss_feeds);
+    await db.exec(rssFeeds);
     await db.exec(news);
-    await db.exec(news_categories);
+    await db.exec(newsCategories);
   }
 }
 

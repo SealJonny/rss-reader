@@ -21,7 +21,7 @@ const openai = new OpenAI();
  * Each news item can be assigned multiple categories, a single category, or no category
  * depending on its content. The categorization is context-based, not just keyword-based.
  */
-export async function categoriseNewsItems(newsItems: NewsItem[], categories: string[], numItems: number = 10): Promise<string> {
+export async function categoriseNewsItems(newsItems: NewsItem[], categories: string[], numItems: number = 10): Promise<Record<number, string[]>> {
   const prompt = `Du erhältst ${numItems} RSS-Feed-News-Items. Jedes News-Item enthält einen Titel und eine Beschreibung. Deine Aufgabe ist es, jedem News-Item passende Kategorie(n) aus der folgenden Liste zuzuweisen. Falls der Inhalt eines News-Items nicht eindeutig einer oder mehreren der angegebenen Kategorien zugeordnet werden kann, gib für dieses Item ein leeres Array [] zurück.
 
 Die Kategorien lauten: ${categories.join(", ")}.
@@ -57,9 +57,17 @@ Beispieloutput:
   });
 
   // Antwort auslesen und parsen
-  const output = completion.choices[0].message?.content || "Something went wrong";
+  const output = completion.choices[0].message?.content; 
+  if (!output) {
+    throw new Error("Could not categorise the NewsItems!");
+  }
 
-  return output;
+  // ToDo: Error Handling
+  let json = JSON.parse(output);
+  const result: Record<number, string[]> = Object.fromEntries(
+    Object.entries(json).map(([key, value]) => [Number(key), value as string[]])
+  );
+  return result;
 }
 
 // Beispielhafte Verwendung:

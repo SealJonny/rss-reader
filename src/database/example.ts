@@ -6,7 +6,7 @@ async function main() {
     await db.initialize();
 
     // Create multiple categories
-   // ["Wirtschaft", "Technik", "Politik"].forEach(async s => await db.categories.save({id: undefined, name: s}));
+    ["Wirtschaft", "Technik", "Politik"].forEach(async s => await db.categories.save({id: undefined, name: s}));
     console.log(await db.categories.all());
 
     let feed: RssFeed = {

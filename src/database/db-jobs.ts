@@ -1,8 +1,8 @@
-import { fetchRss } from "../xml/rss";
 import db from "./database";
 import { categoriseNewsItems } from "../ai/categorise-newsitem";
 import { NewsItem } from "../interfaces/news-item";
 import { Category } from "../interfaces/category";
+import { fetchRss } from "../rss/fetcher";
 
 type Job = NewsItem[][];
 
@@ -52,7 +52,7 @@ export class DbJobs {
   /**
    * Fetches all NewsItems from db which are not processed yet and splitts them into jobs.
    * Each jobs contains a maximum of 8 * size NewsItems
-   * 
+   *
    *
    * @param size Size of NewsItems arrays send to GPT in one request
    * @returns An array of Jobs each containing an array of arrays of NewsItems
@@ -134,7 +134,7 @@ export class DbJobs {
     if (categories.length === 0) return;
 
     for (let job of jobs) {
-      await this.executeCategoriseJob(job, categories, batchSize); 
+      await this.executeCategoriseJob(job, categories, batchSize);
     }
   }
 }

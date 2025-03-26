@@ -7,8 +7,8 @@ import { DbJobs } from "./db-jobs";
 async function insertExample() {
   let feed: RssFeed = {
     title: "test",
-    //link: "https://news.google.com/rss/search?q=Technology&hl=de&gl=DE&ceid=DE:de",
-    link: "https://www.tagesschau.de/infoservices/alle-meldungen-100~rss2.xml",
+    link: "https://news.google.com/rss/search?q=Technology&hl=de&gl=DE&ceid=DE:de",
+    //link: "https://www.tagesschau.de/infoservices/alle-meldungen-100~rss2.xml",
     description: "",
     language: null,
     lastBuildDate: null,
@@ -23,10 +23,10 @@ async function insertExample() {
 
 async function main() {
   await db.initialize();
-  //["Wirtschaft", "Technik", "Politik"].forEach(async s => await db.categories.save({id: undefined, name: s}));
+  ["Wirtschaft", "Technik", "Politik"].forEach(async s => await db.categories.save({id: undefined, name: s}));
   const jobs = new DbJobs();
   await insertExample();
-  await jobs.categoriesAllNews();
+  await jobs.categoriseAllNews();
   // let test = await db.news.setFavorite(1, true);
   // test = await db.news.setProcessed(1, true);
   //

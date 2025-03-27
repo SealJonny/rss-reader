@@ -3,8 +3,9 @@ import { colors } from '../themes/default-theme';
 import { centerElement, createConfirmBox, createErrorBox, createNotificationBox } from '../utils/ui-utils';
 import { RssFeed } from '../../../interfaces/rss-feed';
 import db from '../../../database/database';
-import { fetchRss } from '../../../xml/rss';
 import { createHelpBox } from '../components/help-box';
+import { validateRssFeed } from '../../../rss/validater';
+import { RssFeedInvalidError, RssFeedNotFoundError } from '../../../errors/rss-feed';
 
 // Type for tracking expanded state of feeds
 interface FeedListState {
@@ -317,7 +318,7 @@ async function showFeedEditPopup(
     style: {
       fg: colors.accent,
     },
-    content: 'Name:',
+    content: 'Name(Optional):',
   });
 
   const nameInput = blessed.textbox({
@@ -413,19 +414,9 @@ async function showFeedEditPopup(
       screen.render();
     });
     input.key('tab', function() {
-      // Instead of trying to prevent default, we'll just handle tab ourselves
       popupBox.focus();
       focusNext();
-
-
     });
-
-    // input.prependListener('keypress', (ch, key) => {
-    //   if (key.name === 'tab') {
-    //     key.stopPropagation(); // verhindert, dass der interne Listener reagiert
-    //     focusNext();     // wechselt den Fokus zur zweiten Textbox
-    //   }
-    // });
   });
 
   // Set up key handlers for inputs
@@ -464,8 +455,8 @@ async function showFeedEditPopup(
       const url = urlInput.getValue();
 
       // Basic validation
-      if (!title || !url) {
-        let errorBox = createErrorBox(screen, 'Name and URL are required   ');
+      if (!url) {
+        let errorBox = createErrorBox(screen, 'An URL is required   ');
         setTimeout(() => {
           errorBox.destroy();
           screen.render();
@@ -504,21 +495,21 @@ async function showFeedEditPopup(
 
         // Validate the feed URL
         try {
-          const testFeed = { ...feedData, id: 999 }; // Temporary ID for testing
-          const testResult = await fetchRss(testFeed);
-
-          if (!testResult) {
-            loadingBox.destroy();
-            let errorBox = createErrorBox(screen, 'Invalid RSS feed URL or feed is empty   ');
-            setTimeout(() => {
-              errorBox.destroy();
-              screen.render();
-            }, 2500);
-            return;
+          const feedData: RssFeed = await validateRssFeed(url);
+          if (title && title !== feedData.title) {
+            feedData.title = title;
           }
         } catch (error) {
           loadingBox.destroy();
-          let errorBox = createErrorBox(screen, `Error validating feed: ${error}   `);
+          let errorBox: blessed.Widgets.BoxElement;
+          if(error instanceof RssFeedNotFoundError) {
+            errorBox = createErrorBox(screen, `Die URL konnte nicht gefunden werden.  `);
+          } else if (error instanceof RssFeedInvalidError) {
+            errorBox = createErrorBox(screen, `Die URL ist kein gültiger RSS Feed.  `);
+          }
+          else {
+            errorBox = createErrorBox(screen, `Error validating feed: ${error}   `);
+          }
           setTimeout(() => {
             errorBox.destroy();
             screen.render();

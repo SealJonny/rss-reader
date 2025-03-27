@@ -1,8 +1,6 @@
 import 'dotenv/config';
 import OpenAI from "openai";
-import { fetchRss } from "../xml/rss";
 import { NewsItem } from '../interfaces/news-item';
-import { RssFeed } from '../interfaces/rss-feed';
 
 const openai = new OpenAI();
 
@@ -21,7 +19,7 @@ const openai = new OpenAI();
  * Each news item can be assigned multiple categories, a single category, or no category
  * depending on its content. The categorization is context-based, not just keyword-based.
  */
-export async function categoriseNewsItems(newsItems: NewsItem[], categories: string[], numItems: number = 10): Promise<Record<number, string[]>> {
+export async function categoriseNewsItems(newsItems: NewsItem[], categories: string[], numItems: number = 10, signal: AbortSignal): Promise<Record<number, string[]>> {
   const prompt = `Du erhältst ${numItems} RSS-Feed-News-Items. Jedes News-Item enthält einen Titel und eine Beschreibung. Deine Aufgabe ist es, jedem News-Item passende Kategorie(n) aus der folgenden Liste zuzuweisen. Falls der Inhalt eines News-Items nicht eindeutig einer oder mehreren der angegebenen Kategorien zugeordnet werden kann, gib für dieses Item ein leeres Array [] zurück.
 
 Die Kategorien lauten: ${categories.join(", ")}.
@@ -47,14 +45,17 @@ Beispieloutput:
     `News-Item ${index + 1}: Titel: ${item.title}, Beschreibung: ${item.description}`
   ).join('\n\n');
 
-  const completion = await openai.chat.completions.create({
-    messages: [
-      { role: "developer", content: prompt },
-      { role: "user", content: newsItemsContent }
-    ],
-    model: "gpt-4",
-    temperature: 0,
-  });
+  const completion = await openai.chat.completions.create(
+    {
+      messages: [
+        { role: "developer", content: prompt },
+        { role: "user", content: newsItemsContent }
+      ],
+      model: "gpt-4",
+      temperature: 0,
+    },
+    { signal: signal }
+  );
 
   // Antwort auslesen und parsen
   const output = completion.choices[0].message?.content; 
@@ -69,35 +70,3 @@ Beispieloutput:
   );
   return result;
 }
-
-// Beispielhafte Verwendung:
-async function exampleUsage() {
-  let newsItems: NewsItem[] = [];
-  const rssFeed: RssFeed ={
-    id: 1,
-    title: "test",
-    link: "https://news.google.com/rss?hl=de&gl=DE&ceid=DE:de",
-    description: "antesten",
-    language: null,
-    lastBuildDate: null
-  }
-  try {
-    newsItems = await fetchRss(rssFeed) ?? [];
-    console.log(`${newsItems.length} News-Items abgerufen.`);
-  } catch (error) {
-    console.error("Fehler beim Abrufen des RSS-Feeds:", error);
-  }
-
-  // Nimm die ersten 10 News-Items oder alle, wenn weniger als 10 vorhanden sind
-  const numItems = 10;
-  const firstTenNewsItems = newsItems.slice(0, numItems);
-  const kategorien: string[]= ["Wissenschaft",  "Technologie", "Wirtschaft", "Politik", "Sport", "Kultur", "Gesundheit", "Umwelt"];
-
-  try {
-    const zugewieseneKategorien = await categoriseNewsItems(firstTenNewsItems, kategorien, numItems);
-    console.log("Zugewiesene Kategorien:", zugewieseneKategorien);
-  } catch (error) {
-    console.error("Fehler beim Kategorisieren der News-Items:", error);
-  }
-}
-// exampleUsage();

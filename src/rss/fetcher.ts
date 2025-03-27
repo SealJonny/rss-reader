@@ -13,12 +13,13 @@ import { parseNewsItem } from "./parser";
  * @throws {RssFeedNotFoundError} If the RSS link could not be found
  * @throws {RssFeedError} If fetching the RSS page failed for any other reason
  */
-export async function fetchRss(feed: RssFeed): Promise<NewsItem[]> {
+export async function fetchRss(feed: RssFeed, signal: AbortSignal): Promise<NewsItem[]> {
   if (typeof feed.id === "undefined") {
     throw new RssFeedInvalidError("RssFeed does not contain a valid id", feed.link);
   }
 
-  const response = await fetch(feed.link);
+  const response = await fetch(feed.link, { signal: signal });
+
   if (response.status === 404) {
     throw new RssFeedNotFoundError("RssFeed could not be found", feed.link);
   }

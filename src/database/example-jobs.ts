@@ -25,6 +25,7 @@ async function main() {
   await db.initialize();
   ["Wirtschaft", "Technik", "Politik"].forEach(async s => await db.categories.save({id: undefined, name: s}));
   const jobs = new DbJobs();
+  jobs.cancel();
   await insertExample();
   await jobs.categoriseAllNews();
   // let test = await db.news.setFavorite(1, true);

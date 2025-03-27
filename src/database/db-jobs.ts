@@ -3,6 +3,7 @@ import { categoriseNewsItems } from "../ai/categorise-newsitem";
 import { NewsItem } from "../interfaces/news-item";
 import { Category } from "../interfaces/category";
 import { fetchRss } from "../rss/fetcher";
+import { AbortError } from "../errors/general";
 
 type Job = NewsItem[][];
 
@@ -26,11 +27,16 @@ export class DbJobs {
    * Fetches all news from RSS feeds (saved in the database) and inserts them into the database
    *
    * @throws {EntityMultiCreateError} If inserting into database fails
+   * @throws {AbortError} If cancellation was requested
    */
   async insertAllNews(): Promise<ErrorFeed[] | null> {
     const feeds = await db.rssFeeds.all();
-    const result = await Promise.allSettled(feeds.map(fetchRss));
+    const result = await Promise.allSettled(feeds.map(async f => fetchRss(f, this.abortController.signal)));
     const errorFeeds: ErrorFeed[] = []
+
+    if (this.abortController.signal.aborted) {
+      throw new AbortError("Abort inserting all NewsItems");
+    }
 
     result.forEach((r, i) => {
       if (r.status === "rejected") {
@@ -52,7 +58,6 @@ export class DbJobs {
   /**
    * Fetches all NewsItems from db which are not processed yet and splitts them into jobs.
    * Each jobs contains a maximum of 8 * size NewsItems
-   *
    *
    * @param size Size of NewsItems arrays send to GPT in one request
    * @returns An array of Jobs each containing an array of arrays of NewsItems
@@ -81,18 +86,25 @@ export class DbJobs {
     return splitArray(splittedNews, 8);
   }
 
+  /**
+   * Execute a single categorise job
+   * @param job Job to be exectuted
+   * @param categories Available categories
+   * @param size Batch size of a gpt request
+   * @throws {AbortError} If cancellation was requested
+  */
   private async executeCategoriseJob(job: Job, categories: Category[], size: number): Promise<void> {
     // Asynchronously fetch GPT results for all news within the job
     const gptResults = (await Promise.allSettled(
-      job.map(newsList => categoriseNewsItems(newsList, categories.map(c => c.name), size))
+      job.map(newsList => categoriseNewsItems(newsList, categories.map(c => c.name), size, this.abortController.signal))
     )).map(r => r.status === "fulfilled" ? r.value : undefined);
+
+    if (this.abortController.signal.aborted) {
+      throw new AbortError("Abort executing categorise job");
+    }
 
     // Batch-process mapping of all relationships and mark each news item as processed
     for(let i = 0; i < job.length; i++) {
-      if (this.abortController.signal.aborted) {
-        return;
-      }
-
       try {
         const newsList = job[i];
         if (!gptResults[i]) {
@@ -126,6 +138,11 @@ export class DbJobs {
     }
   }
 
+  /**
+   * Categorises all NewsItems in the db which are not processed yet
+   *
+   * @throws {AbortError} If cancellation was requested
+   */
   async categoriseAllNews() {
     const batchSize = 25;
     const jobs = await this.fetchAndSplitNews(batchSize);
@@ -134,6 +151,9 @@ export class DbJobs {
     if (categories.length === 0) return;
 
     for (let job of jobs) {
+      if (this.abortController.signal.aborted) {
+        throw new AbortError("Abort categorising all NewsItems");
+      }
       await this.executeCategoriseJob(job, categories, batchSize);
     }
   }

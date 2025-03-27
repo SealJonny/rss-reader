@@ -1,4 +1,4 @@
-import blessed from 'blessed';
+import blessed from 'more-blessed';
 import { showStartAnimation } from './screens/start-animation';
 import { showRssFeedScreen } from './screens/rss-feed-screen';
 import { showMainScreen, MainMenuSelection } from './screens/main-screen';
@@ -6,6 +6,7 @@ import { createHelpBox } from './components/help-box';
 import { createConfirmBox, createErrorBox } from './utils/ui-utils';
 import db from '../../database/database';
 import { Category, SystemCategory } from '../../interfaces/category';
+import { showEditFeedsScreen } from './screens/edit-feeds-screen';
 
 /**
  * Hauptfunktion für die UI-Steuerung
@@ -24,7 +25,7 @@ export async function main() {
   let quitPending = false;
 
   // Beenden der Anwendung
-  screen.key(['escape', 'C-c'], () => {
+  screen.key([ 'C-c'], () => { // 'escape',
     if (!quitPending) {
       quitPending = true;
       // Bestätigungsnachricht anzeigen
@@ -62,6 +63,10 @@ export async function main() {
 
       case MainMenuSelection.FAVORITE_FEED:
         await showFeed(screen, SystemCategory.FAVORITES);
+        break;
+
+      case MainMenuSelection.EDIT_URLS:
+        await showEditFeedsScreen(screen);
         break;
 
       case MainMenuSelection.START_ANIMATION:

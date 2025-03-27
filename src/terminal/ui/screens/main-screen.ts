@@ -1,4 +1,4 @@
-import blessed from 'blessed';
+import blessed from 'more-blessed';
 import { createHelpBox } from '../components/help-box';
 import { colors, formatHeading } from '../themes/default-theme';
 import { createSelectableList, ListItem } from '../components/selectable-list';
@@ -15,7 +15,7 @@ export enum MainMenuSelection {
   CATEGORY_LIST = -2,
   FAVORITE_FEED = -3,
   EDIT_URLS = -4,
-  EDIT_FAVORITES = -5,
+  EDIT_CATEGORIES = -5,
   START_ANIMATION = -6
 }
 
@@ -29,7 +29,7 @@ export async function showMainScreen(screen: blessed.Widgets.Screen, categories:
       top: 0,
       left: 0,
       width: '100%',
-      height: '90%',
+      height: '100%-2',
     });
 
     screen.append(mainScreenBox);
@@ -99,7 +99,7 @@ export async function showMainScreen(screen: blessed.Widgets.Screen, categories:
 
       { text: 'Settings', isHeading: true },
       { text: 'Edit Feed URLs (4)', key: MainMenuSelection.EDIT_URLS },
-      { text: 'Edit Favorites (5)', key: MainMenuSelection.EDIT_FAVORITES },
+      { text: 'Edit Categories (5)', key: MainMenuSelection.EDIT_CATEGORIES },
 
       { text: 'Misc', isHeading: true },
       { text: 'Show Start Animation (6)', key: MainMenuSelection.START_ANIMATION },
@@ -174,6 +174,11 @@ export async function showMainScreen(screen: blessed.Widgets.Screen, categories:
 
     list.key(['3'], () => {
       resolve(MainMenuSelection.FAVORITE_FEED);
+      cleanup();
+    });
+
+    list.key(['4'], () => {
+      resolve(MainMenuSelection.EDIT_URLS);
       cleanup();
     });
 

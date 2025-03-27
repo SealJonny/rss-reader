@@ -1,7 +1,7 @@
-import blessed from 'blessed';
+import blessed from 'more-blessed';
 import { colors } from '../themes/default-theme';
 
-type View = "main-screen" | "rss-feed" | "nested-list";
+type View = "main-screen" | "rss-feed" | "nested-list" | "edit-feeds";
 
 /**
  * Erstellt eine Help-Box, die Benutzerhinweise anzeigt
@@ -18,7 +18,7 @@ export function createHelpBox(screen: blessed.Widgets.Screen, view: View) {
     height: 'shrink',
     align: 'right',
     valign: 'middle',
-    style: { 
+    style: {
       bg: colors.background,
       fg: colors.text.muted,
     },
@@ -35,6 +35,8 @@ export function createHelpBox(screen: blessed.Widgets.Screen, view: View) {
     helpBox.setContent('[enter] Auswählen  [↑/↓] Navigieren  [ctrl + c | esc] Verlassen');
   } else if (view === "nested-list") {
     helpBox.setContent('    [enter] Auswählen  [↑/↓] Navigieren  [q | backspace] Zurück');
+  } else if (view === "edit-feeds") {
+    helpBox.setContent('[a] Add Feed  [e] Edit Feed  [d] Delete Feed  [↑/↓] Navigate  [enter] Expand  [q] Back');
   }
 
   // Dem Screen anhängen

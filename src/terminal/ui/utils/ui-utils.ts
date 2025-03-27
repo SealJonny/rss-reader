@@ -1,4 +1,4 @@
-import blessed from 'blessed';
+import blessed from 'more-blessed';
 import { colors } from '../themes/default-theme';
 
 /**

@@ -1,4 +1,4 @@
-import blessed from 'blessed';
+import blessed from 'more-blessed';
 
 /**
  * Fügt Tastaturnavigationsfunktionen zu einer Liste hinzu
@@ -7,8 +7,8 @@ import blessed from 'blessed';
  * @param choices Die Listeneinträge
  */
 export function addCustomKeyEventsToList(
-  list: blessed.Widgets.ListElement, 
-  screen: blessed.Widgets.Screen, 
+  list: blessed.Widgets.ListElement,
+  screen: blessed.Widgets.Screen,
   choices: string[]
 ): void {
   // Funktion, die prüft, ob ein Eintrag eine Überschrift ist
@@ -17,7 +17,7 @@ export function addCustomKeyEventsToList(
   }
 
   list.focus();
-  
+
   // Aktualisiere die Darstellung, wenn der Benutzer navigiert
   list.on('keypress', (_ch, key) => {
     if (['up', 'down'].includes(key.name)) {
@@ -32,7 +32,7 @@ export function addCustomKeyEventsToList(
         screen.render();
       });
     }
-    
+
     if (key.name === 'up') {
       // Greife auf den aktuellen Index zu
       const currentIndex = (list as any).selected as number;

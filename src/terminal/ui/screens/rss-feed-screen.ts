@@ -1,4 +1,4 @@
-import blessed from 'blessed';
+import blessed from 'more-blessed';
 import open from 'open';
 import { NewsItem } from "../../../interfaces/news-item";
 import { createErrorBox, createNotificationBox } from "../utils/ui-utils";

@@ -1,4 +1,4 @@
-import blessed from 'blessed';
+import blessed from 'more-blessed';
 import { wait, hexToRgb, interpolateColor, colorText } from '../utils/animation-utils';
 
 // Frames für die Startanimation

@@ -1,4 +1,4 @@
-import blessed from 'blessed';
+import blessed from 'more-blessed';
 
 export function getScreenWidth(screen: blessed.Widgets.Screen): number {
   return screen.width as number;

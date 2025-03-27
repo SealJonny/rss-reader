@@ -1,4 +1,4 @@
-import blessed from 'blessed';
+import blessed from 'more-blessed';
 import { colors, styles, formatHeading } from '../themes/default-theme';
 
 export interface ListItem {
@@ -23,7 +23,7 @@ export function createSelectableList(
     padding?: { left?: number; right?: number; top?: number; bottom?: number };
   }
 ): blessed.Widgets.ListElement {
-  
+
   // Formatiere die Items entsprechend (Headings und normale Einträge)
   const formattedItems = items.map((item, index) => {
     if (item.isHeading) {

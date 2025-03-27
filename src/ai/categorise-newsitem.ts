@@ -1,8 +1,5 @@
-import 'dotenv/config';
-import OpenAI from "openai";
 import { NewsItem } from '../interfaces/news-item';
-
-const openai = new OpenAI();
+import { prompt } from './common';
 
 /**
  * Categorizes a list of news items using OpenAI's GPT model.
@@ -20,7 +17,7 @@ const openai = new OpenAI();
  * depending on its content. The categorization is context-based, not just keyword-based.
  */
 export async function categoriseNewsItems(newsItems: NewsItem[], categories: string[], numItems: number = 10, signal: AbortSignal): Promise<Record<number, string[]>> {
-  const prompt = `Du erhältst ${numItems} RSS-Feed-News-Items. Jedes News-Item enthält einen Titel und eine Beschreibung. Deine Aufgabe ist es, jedem News-Item passende Kategorie(n) aus der folgenden Liste zuzuweisen. Falls der Inhalt eines News-Items nicht eindeutig einer oder mehreren der angegebenen Kategorien zugeordnet werden kann, gib für dieses Item ein leeres Array [] zurück.
+  const systemPrompt = `Du erhältst ${numItems} RSS-Feed-News-Items. Jedes News-Item enthält einen Titel und eine Beschreibung. Deine Aufgabe ist es, jedem News-Item passende Kategorie(n) aus der folgenden Liste zuzuweisen. Falls der Inhalt eines News-Items nicht eindeutig einer oder mehreren der angegebenen Kategorien zugeordnet werden kann, gib für dieses Item ein leeres Array [] zurück.
 
 Die Kategorien lauten: ${categories.join(", ")}.
 
@@ -45,20 +42,9 @@ Beispieloutput:
     `News-Item ${index + 1}: Titel: ${item.title}, Beschreibung: ${item.description}`
   ).join('\n\n');
 
-  const completion = await openai.chat.completions.create(
-    {
-      messages: [
-        { role: "developer", content: prompt },
-        { role: "user", content: newsItemsContent }
-      ],
-      model: "gpt-4",
-      temperature: 0,
-    },
-    { signal: signal }
-  );
+  const output = await prompt(systemPrompt, newsItemsContent, signal);
 
   // Antwort auslesen und parsen
-  const output = completion.choices[0].message?.content; 
   if (!output) {
     throw new Error("Could not categorise the NewsItems!");
   }

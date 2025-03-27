@@ -2,6 +2,12 @@ import { Database } from "sqlite";
 import { NewsItem } from "../../interfaces/news-item";
 import { Category } from "../../interfaces/category";
 import { EntityCreateError } from "../../errors/database";
+
+export type CategoryNewsRelationship = {
+  newsId: number;
+  categoryId: number;
+};
+
 export class NewsCategories {
   dbConnection: Database;
   tableName: string;
@@ -11,15 +17,38 @@ export class NewsCategories {
     this.tableName = tableName;
   }
 
-  async addCategoryToNews(newsId: number, categoryId: number): Promise<boolean> {
-    if (isNaN(newsId) || isNaN(categoryId)) {
-        return false;
+  async addCategoryToNews(...relationships: CategoryNewsRelationship[]): Promise<boolean> {
+    relationships = relationships.filter(r => !isNaN(r.newsId) && !isNaN(r.categoryId));
+    if (relationships.length === 0) {
+      return false;
     }
-    const query = `INSERT INTO ${this.tableName} (categoryId, newsId) VALUES (?, ?)`;
+    const useTransaction = relationships.length > 1;
+
+    const placeholders = relationships.map(() => "(?, ?)").join(", ")
+    const query = `
+      INSERT INTO 
+      ${this.tableName}
+      (categoryId, newsId)
+      VALUES ${placeholders}
+    `;
+    const values = relationships.flatMap(r => [r.categoryId, r.newsId]);
     try {
-      const result = await this.dbConnection.run(query, categoryId, newsId)
+      if (useTransaction) {
+        await this.dbConnection.run("BEGIN TRANSACTION");
+      }
+
+      const result = await this.dbConnection.run(query, values);
+
+      if (useTransaction) {
+        await this.dbConnection.run("COMMIT");
+      }
+
       return typeof result.lastID === "number";
     } catch (error) {
+      if (useTransaction) {
+        await this.dbConnection.run("ROLLBACK");
+      }
+
       throw EntityCreateError.from(error, this.tableName);
     }
   }

@@ -1,23 +1,22 @@
 import db from "./database";
 import { NewsItem } from "../interfaces/news-item";
-import { sha256 } from "./utils/sha256";
 import { RssFeed } from "../interfaces/rss-feed";
 
 async function main() {
     await db.initialize();
 
     // Create multiple categories
-   // ["Wirtschaft", "Technik", "Politik"].forEach(async s => await db.categories.save({id: undefined, name: s}));
+    ["Wirtschaft", "Technik", "Politik"].forEach(async s => await db.categories.save({id: undefined, name: s}));
     console.log(await db.categories.all());
 
     let feed: RssFeed = {
       title: "Test",
-      link: "ahsdfkaslfjalskjföal",
+      link: "https://news.google.com/rss/search?q=Technology&hl=de&gl=DE&ceid=DE:de",
       description: "Test Rssfeed",
       language: "de",
       lastBuildDate: Date.now()
     };
-    //feed = await db.rssFeeds.save(feed) ?? feed;
+    feed = await db.rssFeeds.save(feed) ?? feed;
 
     // Create single news
     let news: NewsItem = {
@@ -29,6 +28,7 @@ async function main() {
       isFavorite: true,
       creationDate: 0,
       hash: "",
+      isProcessed: false,
       rssFeedId: 1
     };
     news = await db.news.save(news) ?? news;

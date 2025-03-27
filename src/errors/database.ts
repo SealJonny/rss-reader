@@ -22,5 +22,7 @@ export class DatabaseConnectionError extends DatabaseError {}
 export class EntityNotFoundError extends DatabaseError {};
 export class EntityUpdateError extends DatabaseError {};
 export class EntityCreateError extends DatabaseError {};
+export class EntityMultiCreateError extends DatabaseError {};
+export class EntityMultiUpdateError extends DatabaseError {};
 export class EntityDeleteError extends DatabaseError {};
 export class QueryInvalidError extends DatabaseError {};

@@ -2,6 +2,7 @@ import { Database } from "sqlite";
 import { DbTable } from "../db-table";
 import { NewsItem } from "../../interfaces/news-item";
 import { sha256 } from "../utils/sha256";
+import { EntityMultiCreateError, EntityMultiUpdateError } from "../../errors/database";
 
 export class News extends DbTable<NewsItem> {
   constructor(dbConnection: Database, tableName: string) {
@@ -9,8 +10,10 @@ export class News extends DbTable<NewsItem> {
   }
 
   private sanitize(news: NewsItem | undefined): NewsItem | undefined {
-    if (news)
+    if (news) {
       news.isFavorite = Boolean(news.isFavorite)
+      news.isProcessed = Boolean(news.isProcessed);
+    }
     return news;
   }
 
@@ -18,6 +21,7 @@ export class News extends DbTable<NewsItem> {
     return newsList.map(n => {
       if (n)
         n.isFavorite = Boolean(n.isFavorite)
+        n.isProcessed = Boolean(n.isProcessed);
       return n;
     });
   }
@@ -25,8 +29,8 @@ export class News extends DbTable<NewsItem> {
   async add(news: NewsItem): Promise<NewsItem | undefined> {
     const query = `
       INSERT INTO ${this.tableName}
-      (title, link, description, creationDate, hash, isFavorite, source, pubDate, rssFeedId)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (title, link, description, creationDate, hash, isFavorite, source, pubDate, isProcessed, rssFeedId)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
     return this.sanitize(await this.executeInsert(
       query,
@@ -38,14 +42,55 @@ export class News extends DbTable<NewsItem> {
       0,
       news.source,
       news.pubDate,
+      0,
       news.rssFeedId
     ));
   }
 
+  async addAll(newsItems: NewsItem[]) {
+    if (newsItems.length === 0) return false;
+
+    const placeholders = newsItems.map(() => "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").join(", ");
+    const query = `
+      INSERT OR IGNORE INTO ${this.tableName}
+      (title, link, description, creationDate, hash, isFavorite, source, pubDate, isProcessed, rssFeedId)
+      VALUES ${placeholders}
+    `;
+    const values = newsItems.flatMap(news => [
+      news.title,
+      news.link,
+      news.description,
+      Date.now(),
+      sha256(news),
+      0,
+      news.source,
+      news.pubDate,
+      0,
+      news.rssFeedId
+    ]);
+
+    try {
+      await this.dbConnection.run("BEGIN TRANSACTION");
+      await this.dbConnection.run(query, values);
+      await this.dbConnection.run("COMMIT");
+    } catch (error) {
+      await this.dbConnection.run("ROLLBACK");
+      throw EntityMultiCreateError.from(error, this.tableName);
+    }
+  }
+
+  /**
+   * Update a {@link NewsItem}
+   *
+   * @param id Id of the {@link NewsItem}
+   * @param news
+   * @returns The updated {@link NewsItem}
+   * @throws {EntityUpdateError}
+   */
   async update(id: number, news: NewsItem): Promise<NewsItem | undefined> {
     const query = `
       UPDATE ${this.tableName}
-      SET title = ?, link = ?, description = ?, hash = ?, isFavorite = ?, source = ?, pubDate = ?
+      SET title = ?, link = ?, description = ?, hash = ?, isFavorite = ?, source = ?, pubDate = ?, isProcessed = ?
       WHERE id = ?
     `;
     return this.sanitize(await this.executeUpdate(
@@ -58,8 +103,51 @@ export class News extends DbTable<NewsItem> {
       Number(news.isFavorite),
       news.source,
       news.pubDate,
+      news.isProcessed,
       id
     ));
+  }
+
+  async setProcessed(id: number, isProcessed: boolean): Promise<NewsItem | undefined> {
+    if (isNaN(id)) {
+      return;
+    }
+    const query = `
+      UPDATE ${this.tableName}
+      SET isProcessed = ?
+      WHERE id = ?
+    `;
+    return this.sanitize(await this.executeUpdate(
+      id,
+      query,
+      Number(isProcessed),
+      id
+    ));
+  }
+
+  async setProcessedBatch(ids: number[], isProcessed: boolean): Promise<void> {
+    ids = ids.filter(i => !isNaN(i));
+    if (ids.length === 0) {
+      return;
+    }
+
+    const idsString = ids.map(() => "?").join(", ");
+    const query = `
+      UPDATE ${this.tableName}
+      SET isProcessed = ?
+      WHERE id IN (${idsString})
+    `;
+
+    const values = [Number(isProcessed), ...ids];
+
+    try {
+      await this.dbConnection.run("BEGIN TRANSACTION");
+      await this.dbConnection.run(query, values);
+      await this.dbConnection.run("COMMIT");
+    } catch (error) {
+      await this.dbConnection.run("ROLLBACK");
+      throw EntityMultiUpdateError.from(error, this.tableName);
+    }
   }
 
   async setFavorite(id: number, isFavorite: boolean): Promise<NewsItem | undefined> {
@@ -89,6 +177,13 @@ export class News extends DbTable<NewsItem> {
     return await this.update(news.id, news)
   }
 
+  /**
+   * Delete a single {@link NewsItem}
+   *
+   * @param id Id of the {@link NewsItem}
+   * @returns true if delete operation was successfull; otherwise false
+   * @throws {EntityDeleteError} If deleting fails
+   */
   async delete(id: number): Promise<boolean> {
     const query = `
       DELETE
@@ -98,11 +193,49 @@ export class News extends DbTable<NewsItem> {
     return await this.executeDelete(query, id);
   }
 
+  /**
+   * Delete all {@link NewsItem} which are older than 1 day and are not favorites
+   *
+   * @throws {EntityDeleteError} If deleting fails
+   */
+  async deleteAllOlderThanOneDay() {
+    const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
+    const query = `
+      DELETE
+      FROM ${this.tableName}
+      WHERE creationDate <= ? AND isFavorite = 0
+    `;
+    try {
+      await this.dbConnection.run("BEGIN TRANSACTION");
+      await this.executeDelete(query, oneDayAgo);
+      await this.dbConnection.run("COMMIT");
+    } catch (error) {
+      await this.dbConnection.run("ROLLBACK");
+      throw error;
+    }
+  }
+
+  /**
+   * Retrieve a single {@link NewsItem} which matches the specified criteria
+   *
+   * @param criteria Search criteria
+   * @returns A {@link NewsItem} which matches the criteria or undefined
+   * @throws {QueryInvalidError} If criteria is an empty object
+   * @throws {DatabaseError} If request fails
+   */
   async findBy(criteria: Partial<NewsItem>): Promise<NewsItem | undefined> {
     const result = this.buildQueryFromCriteria(criteria);
     return this.sanitize(await this.executeSingleFind(result.query, result.values));
   }
 
+  /**
+   * Retrieve a list of {@link NewsItem} where each matches the specified criteria
+   *
+   * @param criteria Search criteria
+   * @returns A list of {@link NewsItem}
+   * @throws {QueryInvalidError} If criteria is an empty object
+   * @throws {DatabaseError} If request fails
+   */
   async all(criteria?: Partial<NewsItem>): Promise<NewsItem[]> {
     if (criteria) {
       const result = this.buildQueryFromCriteria(criteria)

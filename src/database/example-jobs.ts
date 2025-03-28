@@ -2,7 +2,6 @@ import { categoriseNewsItems } from "../ai/categorise-newsitem";
 import { NewsItem } from "../interfaces/news-item";
 import { RssFeed } from "../interfaces/rss-feed";
 import db from "./database";
-import { DbJobs } from "./db-jobs";
 
 async function insertExample() {
   let feed: RssFeed = {
@@ -24,8 +23,6 @@ async function insertExample() {
 async function main() {
   await db.initialize();
   ["Wirtschaft", "Technik", "Politik"].forEach(async s => await db.categories.save({id: undefined, name: s}));
-  const jobs = new DbJobs();
-  jobs.cancel();
   await insertExample();
   //await jobs.categoriseAllNews();
   // let test = await db.news.setFavorite(1, true);

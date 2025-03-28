@@ -1,6 +1,5 @@
 import 'dotenv/config';
 import OpenAI from "openai";
-import { fetchRss } from "../xml/rss";
 import { NewsItem } from '../interfaces/news-item';
 
 const openai = new OpenAI();
@@ -55,7 +54,7 @@ JSON-Objekt mit Schlüsseln "1" bis "${numItems}" und Arrays der zugewiesenen Ka
 (async () => {
   let newsItems: NewsItem[] = [];
   try {
-    newsItems = await fetchRss("https://news.google.com/rss?hl=de&gl=DE&ceid=DE:de");
+    //newsItems = await fetchRss("https://news.google.com/rss?hl=de&gl=DE&ceid=DE:de");
     console.log(`${newsItems.length} News-Items abgerufen.`);
   } catch (error) {
     console.error("Fehler beim Abrufen des RSS-Feeds:", error);

@@ -1,6 +1,6 @@
 import blessed from 'more-blessed';
 import { wait, hexToRgb, interpolateColor, colorText } from '../utils/animation-utils';
-import { DbJobs } from '../../../database/db-jobs';
+import insertJob from '../../../database/jobs/insert-job';
 
 // Frames für die Startanimation
 const startAnimationFrames: string[][] = [
@@ -91,13 +91,7 @@ const startAnimationFrames: string[][] = [
  * @param screen Der blessed Screen
  * @returns Das erstellte AnimationBox Element
  */
-export async function showStartAnimation(screen: blessed.Widgets.Screen, job?: DbJobs): Promise<blessed.Widgets.BoxElement> {
-  let isFinished = false;
-  if (job) {
-    job.on("complete", () => isFinished = true);
-    job.on("error", () => isFinished = true);
-  }
-
+export async function showStartAnimation(screen: blessed.Widgets.Screen, bindToInsertJob: boolean = false): Promise<blessed.Widgets.BoxElement> {
   // Berechne die maximale Zeilenlänge für horizontale Zentrierung
   const maxLineLength = startAnimationFrames.reduce((max, frame) => {
     const frameMax = frame.reduce((m, line) => Math.max(m, line.length), 0);
@@ -142,7 +136,7 @@ export async function showStartAnimation(screen: blessed.Widgets.Screen, job?: D
 
     //job ? colorText("Die Datenbank wird gerade gefüllt...", startColor) : colorText("Drücke ENTER um fortzufahren...", startColor)
   // Hinweistext hinzufügen, dass Enter gedrückt werden soll
-  animationBox.setContent(`${animationBox.getContent()}\n\n${job ? colorText("Die Datenbank wird gerade gefüllt...", startColor) : colorText("Drücke ENTER um fortzufahren...", startColor)}`
+  animationBox.setContent(`${animationBox.getContent()}\n\n${bindToInsertJob ? colorText("Die Datenbank wird gerade gefüllt...", startColor) : colorText("Drücke ENTER um fortzufahren...", startColor)}`
     //colorText("Drücke ENTER um fortzufahren...", startColor)
   );
 
@@ -151,12 +145,12 @@ export async function showStartAnimation(screen: blessed.Widgets.Screen, job?: D
   // Warten, bis Enter gedrückt wird
   animationBox.focus();
   await new Promise<void>((resolve) => {
-    if (job) {
-      if (isFinished) {
+    if (bindToInsertJob) {
+      if (!insertJob.isActive()) {
         resolve();
       } else {
-        job.on("complete", resolve);
-        job.on("error", resolve);
+        insertJob.once("complete", resolve);
+        insertJob.once("error", resolve);
       }
     } else {
       screen.key(['enter'], resolve);

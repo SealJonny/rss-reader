@@ -37,9 +37,9 @@ async function main() {
     let found = await db.news.findBy({id: news.id});
 
     let business = await db.categories.findBy({name: "Wirtschaft"});
-    if (await db.join.addCategoryToNews(found?.id!, business?.id!)) {
-        console.log("Successfully inserted an n:m relationship!")
-    }
+    // if (await db.join.addCategoryToNews(found?.id!, business?.id!)) {
+    //     console.log("Successfully inserted an n:m relationship!")
+    // }
 
     found = await db.news.setFavorite(found!.id!, true);
 

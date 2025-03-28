@@ -1,5 +1,6 @@
 import blessed from 'more-blessed';
 import { wait, hexToRgb, interpolateColor, colorText } from '../utils/animation-utils';
+import { DbJobs } from '../../../database/db-jobs';
 
 // Frames für die Startanimation
 const startAnimationFrames: string[][] = [
@@ -75,8 +76,6 @@ const startAnimationFrames: string[][] = [
     "██║  ██║███████║███████║    ██║  ██║███████╗██║  ██║██████╔╝███████╗██║  ██║",
     "╚═╝  ╚═╝╚══════╝╚══════╝    ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═════╝ ╚══════╝╚═╝  ╚═╝",
   ],
-  ["", "", "", "", "", ""],
-  ["", "", "", "", "", ""],
   [
     "██████╗ ███████╗███████╗    ██████╗ ███████╗ █████╗ ██████╗ ███████╗██████╗",
     "██╔══██╗██╔════╝██╔════╝    ██╔══██╗██╔════╝██╔══██╗██╔══██╗██╔════╝██╔══██╗",
@@ -92,7 +91,13 @@ const startAnimationFrames: string[][] = [
  * @param screen Der blessed Screen
  * @returns Das erstellte AnimationBox Element
  */
-export async function showStartAnimation(screen: blessed.Widgets.Screen): Promise<blessed.Widgets.BoxElement> {
+export async function showStartAnimation(screen: blessed.Widgets.Screen, job?: DbJobs): Promise<blessed.Widgets.BoxElement> {
+  let isFinished = false;
+  if (job) {
+    job.on("complete", () => isFinished = true);
+    job.on("error", () => isFinished = true);
+  }
+
   // Berechne die maximale Zeilenlänge für horizontale Zentrierung
   const maxLineLength = startAnimationFrames.reduce((max, frame) => {
     const frameMax = frame.reduce((m, line) => Math.max(m, line.length), 0);
@@ -135,20 +140,27 @@ export async function showStartAnimation(screen: blessed.Widgets.Screen): Promis
     currentWait *= accelerationFactor;
   }
 
+    //job ? colorText("Die Datenbank wird gerade gefüllt...", startColor) : colorText("Drücke ENTER um fortzufahren...", startColor)
   // Hinweistext hinzufügen, dass Enter gedrückt werden soll
-  animationBox.setContent(
-    animationBox.getContent() +
-    "\n\n" +
-    colorText("Drücke ENTER um fortzufahren...", startColor)
+  animationBox.setContent(`${animationBox.getContent()}\n\n${job ? colorText("Die Datenbank wird gerade gefüllt...", startColor) : colorText("Drücke ENTER um fortzufahren...", startColor)}`
+    //colorText("Drücke ENTER um fortzufahren...", startColor)
   );
+
   screen.render();
 
   // Warten, bis Enter gedrückt wird
   animationBox.focus();
   await new Promise<void>((resolve) => {
-    screen.key(['enter'], () => {
-      resolve();
-    });
+    if (job) {
+      if (isFinished) {
+        resolve();
+      } else {
+        job.on("complete", resolve);
+        job.on("error", resolve);
+      }
+    } else {
+      screen.key(['enter'], resolve);
+    }
   });
 
   // AnimationBox ausblenden

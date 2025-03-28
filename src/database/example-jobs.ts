@@ -17,8 +17,8 @@ async function insertExample() {
     await db.rssFeeds.add(feed);
   } catch (error) {}
 
-  const jobs = new DbJobs();
-  await jobs.insertAllNews();
+  //const jobs = new DbJobs();
+  //await jobs.insertAllNews();
 }
 
 async function main() {
@@ -27,7 +27,7 @@ async function main() {
   const jobs = new DbJobs();
   jobs.cancel();
   await insertExample();
-  await jobs.categoriseAllNews();
+  //await jobs.categoriseAllNews();
   // let test = await db.news.setFavorite(1, true);
   // test = await db.news.setProcessed(1, true);
   //

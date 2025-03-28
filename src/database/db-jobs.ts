@@ -4,6 +4,9 @@ import { NewsItem } from "../interfaces/news-item";
 import { Category } from "../interfaces/category";
 import { fetchRss } from "../rss/fetcher";
 import { AbortError } from "../errors/general";
+import { EventEmitter } from "stream";
+import { throws } from "assert";
+import { RssFeed } from "../interfaces/rss-feed";
 
 type Job = NewsItem[][];
 
@@ -12,15 +15,24 @@ export type ErrorFeed = {
   errorMsg: string
 }
 
-export class DbJobs {
+export class DbJobs extends EventEmitter {
   private abortController: AbortController;
 
   constructor() {
+    super();
     this.abortController = new AbortController();
   }
 
   cancel() {
     this.abortController.abort();
+  }
+
+  private sendStatusError() {
+    this.emit("error");
+  }
+
+  private sendStatusComplete() {
+    this.emit("complete");
   }
 
   /**
@@ -30,11 +42,19 @@ export class DbJobs {
    * @throws {AbortError} If cancellation was requested
    */
   async insertAllNews(): Promise<ErrorFeed[] | null> {
-    const feeds = await db.rssFeeds.all();
+    let feeds: RssFeed[];
+    try {
+      feeds = await db.rssFeeds.all();
+    } catch (error) {
+      this.sendStatusError();
+      throw error;
+    }
+
     const result = await Promise.allSettled(feeds.map(async f => fetchRss(f, this.abortController.signal)));
     const errorFeeds: ErrorFeed[] = []
 
     if (this.abortController.signal.aborted) {
+      this.sendStatusComplete();
       throw new AbortError("Abort inserting all NewsItems");
     }
 
@@ -49,9 +69,20 @@ export class DbJobs {
       .filter(r => r.status === "fulfilled")
       .map(r => r.value)
       .flat();
-    await db.news.addAll(news);
 
-    if (errorFeeds.length === 0) return null;
+    try {
+      await db.news.addAll(news);
+    } catch (error) {
+      this.sendStatusError();
+      throw error;
+    }
+
+    if (errorFeeds.length === 0) {
+      this.sendStatusComplete();
+      return null;
+    }
+
+    this.sendStatusError();
     return errorFeeds;
   }
 
@@ -105,6 +136,10 @@ export class DbJobs {
 
     // Batch-process mapping of all relationships and mark each news item as processed
     for(let i = 0; i < job.length; i++) {
+      if (this.abortController.signal.aborted) {
+        throw new AbortError("Abort executing categorise job");
+      }
+
       try {
         const newsList = job[i];
         if (!gptResults[i]) {
@@ -126,6 +161,10 @@ export class DbJobs {
           return categoryIds.map(c => ({newsId: n.id!, categoryId: c}));
         });
 
+        if (this.abortController.signal.aborted) {
+          throw new AbortError("Abort executing categorise job");
+        }
+
         // Save relationships in db and set news to processed
         await db.join.addCategoryToNews(...relationships);
         const newsIds = newsList.map(n => n.id!);
@@ -145,8 +184,20 @@ export class DbJobs {
    */
   async categoriseAllNews() {
     const batchSize = 25;
-    const jobs = await this.fetchAndSplitNews(batchSize);
-    const categories = await db.categories.all();
+    let jobs: Job[];
+    let categories: Category[];
+
+    if (this.abortController.signal.aborted) {
+      throw new AbortError("Abort categorising all NewsItems");
+    }
+
+    try {
+      jobs = await this.fetchAndSplitNews(batchSize);
+      categories = await db.categories.all();
+    } catch (error) {
+      this.sendStatusError();
+      throw error;
+    }
 
     if (categories.length === 0) return;
 
@@ -154,7 +205,14 @@ export class DbJobs {
       if (this.abortController.signal.aborted) {
         throw new AbortError("Abort categorising all NewsItems");
       }
-      await this.executeCategoriseJob(job, categories, batchSize);
+
+      try {
+        await this.executeCategoriseJob(job, categories, batchSize);
+      } catch (error) {
+        this.sendStatusError();
+        throw error;
+      }
     }
+    this.sendStatusComplete();
   }
 }

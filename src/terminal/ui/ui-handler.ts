@@ -3,16 +3,23 @@ import { showStartAnimation } from './screens/start-animation';
 import { showRssFeedScreen } from './screens/rss-feed-screen';
 import { showMainScreen, MainMenuSelection } from './screens/main-screen';
 import { createHelpBox } from './components/help-box';
-import { createConfirmBox, createErrorBox } from './utils/ui-utils';
+import { createConfirmBox, createErrorBox, createNotificationBox } from './utils/ui-utils';
 import db from '../../database/database';
 import { Category, SystemCategory } from '../../interfaces/category';
 import { showEditFeedsScreen } from './screens/edit-feeds-screen';
+import { DbJobs } from '../../database/db-jobs';
 
 /**
  * Hauptfunktion für die UI-Steuerung
  */
 export async function main() {
   await db.initialize();
+
+  await db.news.deleteAllOlderThanOneDay();
+
+
+  const insertJob = new DbJobs();
+  const categoriseJob = new DbJobs();
 
   // Erstelle Hauptbildschirm
   const screen = blessed.screen({
@@ -35,9 +42,39 @@ export async function main() {
         quitPending = false;
       }, 3000);
     } else {
-      process.exit(0);
+      insertJob.cancel();
+      categoriseJob.cancel();
+      setTimeout(() => process.exit(0), 200);
     }
   });
+
+
+  // Boot into start animation and start fetching all news
+  try {
+    const startAnimation = showStartAnimation(screen, insertJob);
+    await insertJob.insertAllNews();
+    const box = await startAnimation;
+    box.destroy();
+  } catch (error) {
+
+  }
+
+  // Start categorise job in background and register callbacks for completion or errors in the categorise job
+  insertJob.on("complete", () => {
+    const box = createNotificationBox(screen, "Kategorisierung ist abgeschlossen   ");
+    setTimeout(() => {
+      box.destroy();
+      screen.render();
+    }, 2500);
+  });
+  insertJob.on("error", () => {
+    const box = createErrorBox(screen, "Die Kategorisierung ist fehlgeschlagen   ");
+    setTimeout(() => {
+      box.destroy();
+      screen.render();
+    }, 2500);
+  });
+  insertJob.categoriseAllNews().catch(e => {});
 
   let categories: Category[] = [];
 

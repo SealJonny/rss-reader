@@ -36,7 +36,7 @@ export function createHelpBox(screen: blessed.Widgets.Screen, view: View) {
   } else if (view === "nested-list") {
     helpBox.setContent('                                                     [enter] Auswählen  [↑/↓] Navigieren  [q | backspace] Zurück');
   } else if (view === "edit-feeds-list") {
-    helpBox.setContent('[a] Feed hinzufügen  [c] ChatGPT Feed Suche  [e] Feed bearbeiten  [d] Feed löschen  [↑/↓] Navigieren  [q] Zurück');
+    helpBox.setContent('[a] Hinzufügen  [c] ChatGPT Suche  [e] Bearbeiten  [d] Löschen  [↑/↓] Navigieren  [q] Zurück');
   } else if (view === "edit-feed") {
     helpBox.setContent('                                                   [Tab/↑/↓] Felder wechseln  [enter] Speichern  [esc] Abbrechen');
   }

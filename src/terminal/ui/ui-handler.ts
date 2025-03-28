@@ -9,6 +9,65 @@ import { Category, SystemCategory } from '../../interfaces/category';
 import { showEditFeedsScreen } from './screens/edit-feeds-screen';
 import insertJob from '../../database/jobs/insert-job';
 import categoriseJob from '../../database/jobs/categorise-job';
+import { AbortError, JobAlreadyRunning } from '../../errors/general';
+
+export async function syncDatabase(screen: blessed.Widgets.Screen): Promise<void> {
+  if (insertJob.isActive() || categoriseJob.isActive()) {
+    const box = createErrorBox(screen, "Die Synchronisation läuft bereits   ");
+    await new Promise<void>(resolve => {
+      setTimeout(() => {
+        box.destroy()
+        screen.render();
+        resolve();
+      }, 3000);
+    });
+    return;
+  } 
+
+  try {
+    const startAnimation = showStartAnimation(screen, true);
+    await insertJob.execute();
+    const box = await startAnimation;
+    box.destroy();
+  } catch (error) {
+    if (error instanceof JobAlreadyRunning) {
+      const box = createErrorBox(screen, "Die Synchronisation läuft bereits   ");
+      setTimeout(() => {
+        box.destroy()
+        screen.render();
+      }, 3000);
+    }
+    if (error instanceof AbortError) {
+      throw error;
+    }
+  }
+
+  categoriseJob.once("complete", () => {
+    const box = createNotificationBox(screen, "Kategorisierung ist abgeschlossen   ");
+    setTimeout(() => {
+      box.destroy();
+      screen.render();
+    }, 2500);
+  });
+
+  categoriseJob.once("error", () => {
+    const box = createErrorBox(screen, "Die Kategorisierung ist fehlgeschlagen   ");
+    setTimeout(() => {
+      box.destroy();
+      screen.render();
+    }, 2500);
+  });
+
+  categoriseJob.execute().catch(error => {
+    if (error instanceof JobAlreadyRunning) {
+      const box = createErrorBox(screen, "Die Synchronisation läuft bereits   ");
+      setTimeout(() => {
+        box.destroy()
+        screen.render();
+      }, 3000);
+    }
+  });
+}
 
 /**
  * Hauptfunktion für die UI-Steuerung
@@ -21,7 +80,7 @@ export async function main() {
   const screen = blessed.screen({
     smartCSR: true,
     fullUnicode: true,
-    title: 'RSS-Feed-Reader',
+    title: 'RSS Feed Reader',
   });
 
   // Zustand für Quit-Bestätigung
@@ -44,33 +103,7 @@ export async function main() {
     }
   });
 
-
-  // Boot into start animation and start fetching all news
-  try {
-    const startAnimation = showStartAnimation(screen, true);
-    await insertJob.execute();
-    const box = await startAnimation;
-    box.destroy();
-  } catch (error) {
-
-  }
-
-  // Start categorise job in background and register callbacks for completion or errors in the categorise job
-  categoriseJob.on("complete", () => {
-    const box = createNotificationBox(screen, "Kategorisierung ist abgeschlossen   ");
-    setTimeout(() => {
-      box.destroy();
-      screen.render();
-    }, 2500);
-  });
-  categoriseJob.on("error", () => {
-    const box = createErrorBox(screen, "Die Kategorisierung ist fehlgeschlagen   ");
-    setTimeout(() => {
-      box.destroy();
-      screen.render();
-    }, 2500);
-  });
-  categoriseJob.execute().catch(e => {});
+  await syncDatabase(screen);
 
   let categories: Category[] = [];
 
@@ -102,8 +135,8 @@ export async function main() {
         await showEditFeedsScreen(screen);
         break;
 
-      case MainMenuSelection.START_ANIMATION:
-        await showStartAnimation(screen);
+      case MainMenuSelection.SYNC:
+          await syncDatabase(screen);
         break;
 
       default:

@@ -6,6 +6,8 @@ import { colorText, hexToRgb } from '../utils/animation-utils';
 import { Categories } from '../../../database/tables/categories';
 import { Category, SystemCategory } from '../../../interfaces/category';
 import { getScreenHeight } from '../utils/feed-utils';
+import insertJob from '../../../database/jobs/insert-job';
+import categoriseJob from '../../../database/jobs/categorise-job';
 
 /**
  * Hauptmenü-Auswahl
@@ -16,7 +18,8 @@ export enum MainMenuSelection {
   FAVORITE_FEED = -3,
   EDIT_URLS = -4,
   EDIT_CATEGORIES = -5,
-  START_ANIMATION = -6
+  START_ANIMATION = -6,
+  SYNC = -7
 }
 
 /**
@@ -54,7 +57,7 @@ export async function showMainScreen(screen: blessed.Widgets.Screen, categories:
       },
     });
 
-    titleBox.setContent(`${colorText("✻", hexToRgb(colors.secondary))}  Welcome to the RSS Feed Reader!`);
+    titleBox.setContent(`${colorText("✻", hexToRgb(colors.secondary))}  Willkommen in dem RSS Feed Reader!`);
 
     // Untertitel
     const subtitleBox = blessed.box({
@@ -65,7 +68,7 @@ export async function showMainScreen(screen: blessed.Widgets.Screen, categories:
       height: 1,
       padding: { left: 1, right: 1 },
     });
-    subtitleBox.setContent('This is the Main Menu: ');
+    subtitleBox.setContent('Du bist im Hauptmenü: ');
 
     const subSubtitleBox = blessed.box({
       parent: mainScreenBox,
@@ -76,7 +79,7 @@ export async function showMainScreen(screen: blessed.Widgets.Screen, categories:
       padding: { left: 1, right: 1 },
       style: { fg: colors.text.muted },
     });
-    subSubtitleBox.setContent('You can choose by either using the hotkeys or the list.');
+    subSubtitleBox.setContent('Nutze die Hotkeys oder die Pfeiltasten um zu navigieren.');
 
     // Trennlinie
     const topLine = blessed.line({
@@ -93,16 +96,20 @@ export async function showMainScreen(screen: blessed.Widgets.Screen, categories:
     // Menü-Items definieren
     const items: ListItem[] = [
       { text: 'Feeds', isHeading: true },
-      { text: 'Show General Feed (1)', key: MainMenuSelection.GENERAL_FEED },
-      { text: 'Show Category Feed (2)', key: MainMenuSelection.CATEGORY_LIST},
-      { text: 'Show Favorite Feed (3)', key: MainMenuSelection.FAVORITE_FEED },
+      { text: 'Allgemein (1)', key: MainMenuSelection.GENERAL_FEED },
+      { text: 'Kategorien (2)', key: MainMenuSelection.CATEGORY_LIST},
+      { text: 'Favoriten (3)', key: MainMenuSelection.FAVORITE_FEED },
 
-      { text: 'Settings', isHeading: true },
-      { text: 'Edit Feed URLs (4)', key: MainMenuSelection.EDIT_URLS },
-      { text: 'Edit Categories (5)', key: MainMenuSelection.EDIT_CATEGORIES },
+      { text: '', isHeading: true },
 
-      { text: 'Misc', isHeading: true },
-      { text: 'Show Start Animation (6)', key: MainMenuSelection.START_ANIMATION },
+      { text: 'Verwaltung', isHeading: true },
+      { text: 'Rss-Feeds (4)', key: MainMenuSelection.EDIT_URLS },
+      { text: 'Kategorien (5)', key: MainMenuSelection.EDIT_CATEGORIES },
+
+      { text: '', isHeading: true },
+
+      { text: 'Werkzeuge', isHeading: true },
+      { text: 'Synchronisieren (6)', key: MainMenuSelection.SYNC},
     ];
 
     // Erstelle die Liste
@@ -127,7 +134,7 @@ export async function showMainScreen(screen: blessed.Widgets.Screen, categories:
 
       // Kategorien-Items definieren
       const categoryItems: ListItem[] = [
-        { text: 'Categorized Feeds', isHeading: true }
+        { text: 'Kategorisierte Feeds', isHeading: true }
       ];
       categoryItems.push(...categories.map((c) =>  { return { text: c.name , key: c.id! } as ListItem }));
 
@@ -183,8 +190,12 @@ export async function showMainScreen(screen: blessed.Widgets.Screen, categories:
     });
 
     list.key(['6'], () => {
-      resolve(MainMenuSelection.START_ANIMATION);
-      cleanup();
+      resolve(MainMenuSelection.SYNC);
+      if (categoriseJob.isActive()) {
+        setTimeout(cleanup, 3000);
+      } else {
+        cleanup();
+      }
     });
 
     // Enter-Taste für die Hauptliste
@@ -198,7 +209,11 @@ export async function showMainScreen(screen: blessed.Widgets.Screen, categories:
           showCategoryMenu();
         } else {
           resolve(selectedItem.key as number);
-          cleanup();
+          if (selectedItem.key === MainMenuSelection.SYNC && categoriseJob.isActive()) {
+              setTimeout(cleanup, 3000);
+          } else {
+            cleanup();
+          }
         }
       }
     });

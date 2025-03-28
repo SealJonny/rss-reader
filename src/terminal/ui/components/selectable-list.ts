@@ -61,7 +61,7 @@ export function createSelectableList(
   }
 
   // Tastaturnavigation einrichten
-  list.key(['up'], () => {
+  list.key(['up', 'k'], () => {
     // Greife auf den aktuellen Index zu
     const currentIndex = (list as any).selected as number;
     let newIndex = currentIndex === 0 ? items.length - 1 : currentIndex - 1;
@@ -76,7 +76,7 @@ export function createSelectableList(
     screen.render();
   });
 
-  list.key(['down'], () => {
+  list.key(['down', 'j'], () => {
     // Greife auf den aktuellen Index zu
     const currentIndex = (list as any).selected as number;
     let newIndex = currentIndex === items.length - 1 ? 0 : currentIndex + 1;

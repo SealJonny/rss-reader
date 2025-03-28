@@ -136,11 +136,15 @@ export async function showMainScreen(screen: blessed.Widgets.Screen, categories:
       const categoryItems: ListItem[] = [
         { text: 'Kategorisierte Feeds', isHeading: true }
       ];
-      categoryItems.push(...categories.map((c) =>  { return { text: c.name , key: c.id! } as ListItem }));
+      if (categories.length === 0) {
+        categoryItems.push({text: "Keine Kategorien angelegt"});
+      } else {
+        categoryItems.push(...categories.map((c) =>  { return { text: c.name , key: c.id! } as ListItem }));
+      }
 
       // Erstelle das Untermenü mit der richtigen Höhe und Breite
       const categoryList = createSelectableList(screen, mainScreenBox, categoryItems, {
-        top: 19,
+        top: 21,
         left: 0,
         width: 'shrink',
         height: Math.min(categoryItems.length + 2, getScreenHeight(screen) - 22),

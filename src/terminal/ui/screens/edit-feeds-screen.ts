@@ -218,6 +218,7 @@ export async function showEditFeedsScreen(screen: blessed.Widgets.Screen): Promi
       helpBox.destroy();
       detailsBox.destroy();
       separator.destroy();
+      headerBox.destroy();
       screen.render();
       resolve();
     });
@@ -229,19 +230,20 @@ export async function showEditFeedsScreen(screen: blessed.Widgets.Screen): Promi
  */
 function renderFeedList(
   screen: blessed.Widgets.Screen,
-  feedListBox: blessed.Widgets.ListElement,
+  feedList: blessed.Widgets.ListElement,
   feeds: RssFeed[],
   state: FeedListState,
   detailsBox?: blessed.Widgets.BoxElement,
   separator?: blessed.Widgets.LineElement
 ): void {
   if (feeds.length === 0) {
-    feedListBox.setItems(['Keine RSS Feeds verfügbar.', '', 'Drücke "a" um manuell einen neuen RSS Feed hinzuzufügen.', '', 'Oder "c" um einen mit Hilfe von ChatGPT hinzuzufügen.']);
+    feedList.setItems(['Keine RSS Feeds verfügbar.', '', 'Drücke "a" um manuell einen neuen RSS Feed hinzuzufügen.', '', 'Oder "c" um einen mit Hilfe von ChatGPT hinzuzufügen.']);
+    feedList.select(1);
 
     // Hide details and separator when no feeds
     if (detailsBox) detailsBox.hide();
     if (separator) separator.hide();
-    feedListBox.screen?.render();
+    feedList.screen?.render();
     return;
   }
 
@@ -254,10 +256,10 @@ function renderFeedList(
     items.push(cuttedTitle);
   });
 
-  feedListBox.setItems(items);
+  feedList.setItems(items);
 
   // Set the selected item (offset by 3 for the header)
-  feedListBox.select(state.currentIndex);
+  feedList.select(state.currentIndex);
 
   // Show details for currently selected feed
   if (detailsBox && separator && feeds.length > 0) {
@@ -272,7 +274,7 @@ function renderFeedList(
     }
   }
 
-  feedListBox.screen?.render();
+  feedList.screen?.render();
 }
 
 /**

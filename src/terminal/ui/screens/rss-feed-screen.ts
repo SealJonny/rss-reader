@@ -3,7 +3,7 @@ import open from 'open';
 import { NewsItem } from "../../../interfaces/news-item";
 import { createErrorBox, createNotificationBox } from "../utils/ui-utils";
 import { colors } from '../themes/default-theme';
-import { getScreenWidth, formatTerminalText } from '../utils/feed-utils';
+import { getScreenWidth, formatTerminalText, countDigits } from '../utils/feed-utils';
 import { Category, isSystemCategory, SystemCategory } from '../../../interfaces/category';
 import db from '../../../database/database';
 
@@ -28,7 +28,9 @@ function showNewsItem(
   let content = '';
 
   // Todo: Prüfen ob das geht
-  let isFavorite = item.isFavorite ? `${' '.repeat(getScreenWidth(screen) - (2 + feedBox.options._feedTitle.length) - 9)}{${colors.green}-fg}✻ {/${colors.green}-fg}` : '';
+
+  let titleLength = countDigits(index + 1) + countDigits(total) + feedBox.options._feedTitle.length + 9; // 1 Slash / 1 "-" / 2 " " / 5 Padding
+  let isFavorite = item.isFavorite ? `${' '.repeat(getScreenWidth(screen) - (titleLength))}{${colors.green}-fg}✻ {/${colors.green}-fg}` : '';
   // Navigations-Header mit Feed-Titel
   content += `{bold}{${colors.accent}-fg}${index + 1}/${total} - ${feedBox.options._feedTitle || ''}${isFavorite}{/${colors.accent}-fg}{/bold}\n`;
 

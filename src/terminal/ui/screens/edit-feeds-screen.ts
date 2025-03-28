@@ -1,6 +1,6 @@
 import blessed from 'more-blessed';
 import { colors } from '../themes/default-theme';
-import { centerElement, createErrorBox, createNotificationBox } from '../utils/ui-utils';
+import { createErrorBox, createNotificationBox } from '../utils/ui-utils';
 import { RssFeed } from '../../../interfaces/rss-feed';
 import db from '../../../database/database';
 import { createHelpBox } from '../components/help-box';
@@ -512,14 +512,13 @@ async function showFeedEditPopup(
         align: 'center',
         valign: 'middle',
       });
-      centerElement(loadingBox, screen);
       screen.render();
 
       try {
         // Validate the feed URL
         let feedData: RssFeed;
         try {
-          feedData= await validateRssFeed(url);
+          feedData = await validateRssFeed(url);
           if (title && title !== feedData.title) {
             feedData.title = title;
           }
@@ -544,7 +543,12 @@ async function showFeedEditPopup(
         // Save to database
         let savedFeed: RssFeed | undefined;
         try {
-          savedFeed = await db.rssFeeds.save(feedData);
+          if (isAdd) {
+            savedFeed = await db.rssFeeds.save(feedData);
+          } else {
+            savedFeed = await db.rssFeeds.update(feed.id!, feedData);
+          }
+
         } catch (error) {
           let errorBox: blessed.Widgets.BoxElement;
           if (error instanceof EntityCreateError) {

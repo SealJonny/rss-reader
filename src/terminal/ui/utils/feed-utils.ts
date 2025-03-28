@@ -8,6 +8,13 @@ export function getScreenHeight(screen: blessed.Widgets.Screen): number {
   return screen.height as number;
 }
 
+export function countDigits(num: number): number {
+  return Math.abs(num)
+    .toString()
+    .replace('.', '')
+    .length;
+}
+
 /**
  * Formatiert einen Text für die Terminalanzeige mit folgenden Funktionen:
  * - Wörter werden nicht am Zeilenende getrennt

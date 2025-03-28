@@ -67,26 +67,9 @@ export function createNotificationBox(screen: blessed.Widgets.Screen, notificati
   return notificationBox;
 }
 
-/**
- * Hilfsfunktion zum Zentrieren von Elementen
- */
-export function centerElement(element: blessed.Widgets.BlessedElement, screen: blessed.Widgets.Screen): void {
-  const screenWidth = (screen as any).width || process.stdout.columns;
-  const screenHeight = (screen as any).height || process.stdout.rows;
-  const elementWidth = (element as any).width || 0;
-  const elementHeight = (element as any).height || 0;
-
-  // Zentrieren horizontal
-  if (typeof elementWidth === 'number' && typeof screenWidth === 'number') {
-    element.left = Math.floor((screenWidth - elementWidth) / 2);
-  } else {
-    element.left = 'center';
-  }
-
-  // Zentrieren vertikal
-  if (typeof elementHeight === 'number' && typeof screenHeight === 'number') {
-    element.top = Math.floor((screenHeight - elementHeight) / 2);
-  } else {
-    element.top = 'center';
-  }
+export function deleteBoxAfter(screen: blessed.Widgets.Screen, box: blessed.Widgets.BoxElement, timeout: number = 3): void {
+  setTimeout(() => {
+    box.destroy();
+    screen.render();
+  }, timeout * 1000);
 }

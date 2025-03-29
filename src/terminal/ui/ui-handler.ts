@@ -10,6 +10,7 @@ import { showEditFeedsScreen } from './screens/edit-feeds-screen';
 import insertJob from '../../database/jobs/insert-job';
 import categoriseJob from '../../database/jobs/categorise-job';
 import { AbortError, JobAlreadyRunning } from '../../errors/general';
+import { showEditCategoriesScreen } from './screens/edit-categories-screen';
 
 export async function syncDatabase(screen: blessed.Widgets.Screen): Promise<void> {
   if (insertJob.isActive() || categoriseJob.isActive()) {
@@ -22,7 +23,7 @@ export async function syncDatabase(screen: blessed.Widgets.Screen): Promise<void
       }, 3000);
     });
     return;
-  } 
+  }
 
   try {
     const startAnimation = showStartAnimation(screen, true);
@@ -133,6 +134,10 @@ export async function main() {
 
       case MainMenuSelection.EDIT_URLS:
         await showEditFeedsScreen(screen);
+        break;
+
+      case MainMenuSelection.EDIT_CATEGORIES:
+        await showEditCategoriesScreen(screen);
         break;
 
       case MainMenuSelection.SYNC:

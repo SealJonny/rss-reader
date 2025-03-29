@@ -1,7 +1,7 @@
 import blessed from 'more-blessed';
 import { colors } from '../themes/default-theme';
 
-type View = "main-screen" | "rss-feed" | "nested-list" | "edit-feeds-list" | "edit-feed";
+type View = "main-screen" | "rss-feed" | "nested-list" | "edit-feeds-list" | "edit-categories-list" | "edit-popup";
 
 /**
  * Erstellt eine Help-Box, die Benutzerhinweise anzeigt
@@ -29,16 +29,27 @@ export function createHelpBox(screen: blessed.Widgets.Screen, view: View) {
     keys: false,
   });
 
-  if (view === "rss-feed") {
-    helpBox.setContent('                                                  [o] Link Öffnen [f] Favorisieren  [↑/↓] Navigieren  [q] Zurück');
-  } else if (view === "main-screen") {
-    helpBox.setContent('                                                         [enter] Auswählen  [↑/↓] Navigieren  [ctrl+c] Verlassen');
-  } else if (view === "nested-list") {
-    helpBox.setContent('                                                     [enter] Auswählen  [↑/↓] Navigieren  [q | backspace] Zurück');
-  } else if (view === "edit-feeds-list") {
-    helpBox.setContent('[a] Hinzufügen  [c] ChatGPT Suche  [e] Bearbeiten  [d] Löschen  [↑/↓] Navigieren  [q] Zurück');
-  } else if (view === "edit-feed") {
-    helpBox.setContent('                                                   [Tab/↑/↓] Felder wechseln  [enter] Speichern  [esc] Abbrechen');
+  switch (view) {
+    case "rss-feed":
+      helpBox.setContent('                                                         [enter] Auswählen  [↑/↓] Navigieren  [ctrl+c] Verlassen');
+      break;
+    case "main-screen":
+      helpBox.setContent('                                                         [enter] Auswählen  [↑/↓] Navigieren  [ctrl+c] Verlassen');
+      break;
+    case "nested-list":
+      helpBox.setContent('                                                     [enter] Auswählen  [↑/↓] Navigieren  [q | backspace] Zurück');
+      break;
+    case "edit-feeds-list":
+      helpBox.setContent('[a] Hinzufügen  [c] ChatGPT Suche  [e] Bearbeiten  [d] Löschen  [↑/↓] Navigieren  [q] Zurück');
+      break;
+    case "edit-categories-list":
+      helpBox.setContent('                    [a] Hinzufügen [e] Bearbeiten  [d] Löschen  [↑/↓] Navigieren  [q] Zurück');
+      break;
+    case "edit-popup":
+      helpBox.setContent('                                                   [Tab/↑/↓] Felder wechseln  [enter] Speichern  [esc] Abbrechen');
+      break;
+    default:
+      break;
   }
 
   // Dem Screen anhängen

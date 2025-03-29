@@ -8,16 +8,17 @@ import { validateRssFeed } from '../../../rss/validater';
 import { RssFeedInvalidError, RssFeedNotFoundError } from '../../../errors/rss-feed';
 import { EntityCreateError } from '../../../errors/database';
 import { getScreenWidth } from '../utils/feed-utils';
+import { Category } from '../../../interfaces/category';
 
 // Type for tracking expanded state of feeds
-interface FeedListState {
+type CategoryListState = {
   currentIndex: number;
 }
 
 /**
  * Shows a screen for editing RSS feed URLs
  */
-export async function showEditFeedsScreen(screen: blessed.Widgets.Screen): Promise<void> {
+export async function showEditCategoriesScreen(screen: blessed.Widgets.Screen): Promise<void> {
   // Header-Box für den Titel, der nicht scrollt
   const headerBox = blessed.box({
     top: 0,
@@ -29,11 +30,11 @@ export async function showEditFeedsScreen(screen: blessed.Widgets.Screen): Promi
       top: 1
     },
     tags: true,
-    content: `{bold}{${colors.secondary}-fg}RSS Feeds Liste{/${colors.secondary}-fg}{/bold}`,
+    content: `{bold}{${colors.secondary}-fg}Kategorien Liste{/${colors.secondary}-fg}{/bold}`,
   });
 
   // Feed-Liste beginnt jetzt unter dem Header
-  const feedListBox = blessed.list({
+  const categoryListBox = blessed.list({
     top: 3,
     left: 0,
     width: '25%',
@@ -91,26 +92,26 @@ export async function showEditFeedsScreen(screen: blessed.Widgets.Screen): Promi
   });
 
   screen.append(headerBox);
-  screen.append(feedListBox);
+  screen.append(categoryListBox);
   screen.append(detailsBox);
-  feedListBox.focus();
+  categoryListBox.focus();
 
   // Add help box
-  const helpBox = createHelpBox(screen, "edit-feeds-list");
+  const helpBox = createHelpBox(screen, "edit-categories-list");
 
   screen.render();
 
   // State for tracking selection
-  const state: FeedListState = {
+  const state: CategoryListState = {
     currentIndex: 0,
   };
 
-  let feeds: RssFeed[] = [];
+  let categories: Category[] = [];
   try {
-    feeds = await db.rssFeeds.all();
-    renderFeedList(screen, feedListBox, feeds, state, detailsBox, separator);
+    categories = await db.categories.all();
+    renderList(screen, categoryListBox, categories, state, detailsBox, separator);
   } catch (error) {
-    let errorBox = createErrorBox(screen, `Error loading RSS feeds: ${error}   `);
+    let errorBox = createErrorBox(screen, `Fehler beim Laden der Kategorien: ${error}   `);
     setTimeout(() => {
       errorBox.destroy();
       screen.render();
@@ -118,57 +119,57 @@ export async function showEditFeedsScreen(screen: blessed.Widgets.Screen): Promi
   }
 
   // Key handler for the feed list
-  feedListBox.key(['up', 'k'], () => {
-    if (feeds.length === 0) return;
+  categoryListBox.key(['up', 'k'], () => {
+    if (categories.length === 0) return;
 
     if (state.currentIndex === 0) {
-      state.currentIndex = feeds.length - 1; // Wrap to the bottom
+      state.currentIndex = categories.length - 1; // Wrap to the bottom
     } else {
       state.currentIndex = Math.max(0, state.currentIndex - 1);
     }
-    renderFeedList(screen, feedListBox, feeds, state, detailsBox, separator);
+    renderList(screen, categoryListBox, categories, state, detailsBox, separator);
   });
 
-  feedListBox.key(['down', 'j'], () => {
-    if (feeds.length === 0) return;
+  categoryListBox.key(['down', 'j'], () => {
+    if (categories.length === 0) return;
 
-    if (state.currentIndex === feeds.length - 1) {
+    if (state.currentIndex === categories.length - 1) {
       state.currentIndex = 0; // Wrap to the top
     } else {
-      state.currentIndex = Math.min(feeds.length - 1, state.currentIndex + 1);
+      state.currentIndex = Math.min(categories.length - 1, state.currentIndex + 1);
     }
-    renderFeedList(screen, feedListBox, feeds, state, detailsBox, separator);
+    renderList(screen, categoryListBox, categories, state, detailsBox, separator);
   });
 
   // Add new feed (a)
-  feedListBox.key(['a'], async () => {
-    await showFeedEditPopup(screen, undefined, feeds, state, feedListBox, detailsBox, separator);
+  categoryListBox.key(['a'], async () => {
+    await showEditPopup(screen, undefined, categories, state, categoryListBox, detailsBox, separator);
   });
 
   // Add new feed through ChatGPT (c)
   // Todo: Implement this feature
-  feedListBox.key(['c'], async () => {
-    await showFeedEditPopup(screen, undefined, feeds, state, feedListBox, detailsBox, separator);
+  categoryListBox.key(['c'], async () => {
+    await showEditPopup(screen, undefined, categories, state, categoryListBox, detailsBox, separator);
   });
 
   // Edit feed (e)
-  feedListBox.key(['e'], async () => {
-    if (feeds.length === 0) return;
+  categoryListBox.key(['e'], async () => {
+    if (categories.length === 0) return;
 
-    const selectedFeed = feeds[state.currentIndex];
-    await showFeedEditPopup(screen, selectedFeed, feeds, state, feedListBox, detailsBox, separator);
+    const selectedCategory = categories[state.currentIndex];
+    await showEditPopup(screen, selectedCategory, categories, state, categoryListBox, detailsBox, separator);
   });
 
   // Delete feed (d)
-  feedListBox.key(['d'], async () => {
-    if (feeds.length === 0) return;
+  categoryListBox.key(['d'], async () => {
+    if (categories.length === 0) return;
 
-    const selectedFeed = feeds[state.currentIndex];
-    if (selectedFeed.id !== undefined) {
-      const cuttedTitle = selectedFeed.title.length > 20 ? `${selectedFeed.title.substring(0, 20)}...` : selectedFeed.title
+    const selectedCategory = categories[state.currentIndex];
+    if (selectedCategory.id !== undefined) {
+      const cuttedTitle = selectedCategory.name.length > 20 ? `${selectedCategory.name.substring(0, 20)}...` : selectedCategory.name
       const notification = createNotificationBox(
         screen,
-        `Bist du sicher dass du den RSS Feed "${cuttedTitle}" löschen willst? [y/n]   `
+        `Bist du sicher dass du die Kategorie "${cuttedTitle}" löschen willst? [y/n]   `
       );
 
       // Wait for confirmation
@@ -176,24 +177,24 @@ export async function showEditFeedsScreen(screen: blessed.Widgets.Screen): Promi
         screen.once('keypress', async (_, key) => {
           if (key.name === 'y' || key.name === 'Y') {
             try {
-              await db.rssFeeds.delete(selectedFeed.id!);
-              feeds = feeds.filter(f => f.id !== selectedFeed.id);
+              await db.rssFeeds.delete(selectedCategory.id!);
+              categories = categories.filter(f => f.id !== selectedCategory.id);
 
               // Update selection
-              if (state.currentIndex >= feeds.length) {
-                state.currentIndex = Math.max(0, feeds.length - 1);
+              if (state.currentIndex >= categories.length) {
+                state.currentIndex = Math.max(0, categories.length - 1);
               }
 
               notification.destroy();
-              const notificationBox = createNotificationBox(screen, `Feed "${selectedFeed.title}" deleted   `);
+              const notificationBox = createNotificationBox(screen, `Kategorie "${selectedCategory.name}" wurde gelöscht `);
               setTimeout(() => {
                 notificationBox.destroy();
                 screen.render();
               }, 2500);
-              renderFeedList(screen, feedListBox, feeds, state, detailsBox, separator);
+              renderList(screen, categoryListBox, categories, state, detailsBox, separator);
             } catch (error) {
               notification.destroy();
-              let errorBox = createErrorBox(screen, `Error deleting feed: ${error}   `);
+              let errorBox = createErrorBox(screen, `Fehler: Löschen der Kategorie "${selectedCategory.name}" ist fehlgeschlagen `);
               setTimeout(() => {
                 errorBox.destroy();
                 screen.render();
@@ -213,8 +214,8 @@ export async function showEditFeedsScreen(screen: blessed.Widgets.Screen): Promi
 
   // Wait for the user to press 'q' to quit
   await new Promise<void>((resolve) => {
-    feedListBox.key(['q'], () => {
-      feedListBox.destroy();
+    categoryListBox.key(['q'], () => {
+      categoryListBox.destroy();
       helpBox.destroy();
       detailsBox.destroy();
       separator.destroy();
@@ -228,22 +229,22 @@ export async function showEditFeedsScreen(screen: blessed.Widgets.Screen): Promi
 /**
  * Renders the feed list with current selection
  */
-function renderFeedList(
+function renderList(
   screen: blessed.Widgets.Screen,
-  feedList: blessed.Widgets.ListElement,
-  feeds: RssFeed[],
-  state: FeedListState,
+  categoryList: blessed.Widgets.ListElement,
+  categories: Category[],
+  state: CategoryListState,
   detailsBox?: blessed.Widgets.BoxElement,
   separator?: blessed.Widgets.LineElement
 ): void {
-  if (feeds.length === 0) {
-    feedList.setItems(['Keine RSS Feeds verfügbar.', '', 'Drücke "a" um manuell einen neuen RSS Feed hinzuzufügen.', '', 'Oder "c" um einen mit Hilfe von ChatGPT hinzuzufügen.']);
-    feedList.select(1);
+  if (categories.length === 0) {
+    categoryList.setItems(['Keine Kategorien verfügbar.', '', 'Drücke "a" um manuell eine neue Kategorie hinzuzufügen.']);
+    categoryList.select(1);
 
     // Hide details and separator when no feeds
     if (detailsBox) detailsBox.hide();
     if (separator) separator.hide();
-    feedList.screen?.render();
+    categoryList.screen?.render();
     return;
   }
 
@@ -251,21 +252,21 @@ function renderFeedList(
   const cutLenght = ((getScreenWidth(screen)*0.25)-10);
 
   // Add items
-  feeds.forEach((feed, index) => {
-    let cuttedTitle = feed.title.length > cutLenght ? `${feed.title.substring(0, cutLenght)}...` : feed.title;
+  categories.forEach((feed, index) => {
+    let cuttedTitle = feed.name.length > cutLenght ? `${feed.name.substring(0, cutLenght)}...` : feed.name;
     items.push(cuttedTitle);
   });
 
-  feedList.setItems(items);
+  categoryList.setItems(items);
 
   // Set the selected item (offset by 3 for the header)
-  feedList.select(state.currentIndex);
+  categoryList.select(state.currentIndex);
 
   // Show details for currently selected feed
-  if (detailsBox && separator && feeds.length > 0) {
-    const selectedFeed = feeds[state.currentIndex];
-    if (selectedFeed) {
-      renderFeedDetails(detailsBox, selectedFeed);
+  if (detailsBox && separator && categories.length > 0) {
+    const selectedCategory = categories[state.currentIndex];
+    if (selectedCategory) {
+      renderDetails(detailsBox, selectedCategory);
       detailsBox.show();
       separator.show();
     } else {
@@ -274,33 +275,33 @@ function renderFeedList(
     }
   }
 
-  feedList.screen?.render();
+  categoryList.screen?.render();
 }
 
 /**
  * Renders the feed details in the details box
  */
-function renderFeedDetails(
+function renderDetails(
   detailsBox: blessed.Widgets.BoxElement,
-  feed: RssFeed
+  category: Category
 ): void {
   let content = '';
 
   // Show title as header
-  content += `{bold}{${colors.secondary}-fg}${feed.title}{/${colors.secondary}-fg}{/bold}\n\n`;
+  content += `{bold}{${colors.secondary}-fg}${category.name}{/${colors.secondary}-fg}{/bold}\n\n`;
 
-  // Show feed details
-  content += `{bold}{${colors.primary}-fg}URL:{/${colors.primary}-fg}{/bold} \n${feed.link}\n\n`;
-  content += `{bold}{${colors.primary}-fg}Description:{/${colors.primary}-fg}{/bold} \n${feed.description}\n\n`;
-
-  if (feed.language) {
-    content += `{bold}{${colors.primary}-fg}Language:{/${colors.primary}-fg}{/bold} \n${feed.language}\n\n`;
-  }
-
-  if (feed.lastBuildDate) {
-    const date = new Date(feed.lastBuildDate);
-    content += `{bold}{${colors.primary}-fg}Last Build Date:{/${colors.primary}-fg}{/bold} \n${date.toLocaleDateString()} ${date.toLocaleTimeString()}\n\n`;
-  }
+  // // Show feed details
+  // content += `{bold}{${colors.primary}-fg}URL:{/${colors.primary}-fg}{/bold} \n${category.link}\n\n`;
+  // content += `{bold}{${colors.primary}-fg}Description:{/${colors.primary}-fg}{/bold} \n${category.description}\n\n`;
+  //
+  // if (category.language) {
+  //   content += `{bold}{${colors.primary}-fg}Language:{/${colors.primary}-fg}{/bold} \n${category.language}\n\n`;
+  // }
+  //
+  // if (category.lastBuildDate) {
+  //   const date = new Date(category.lastBuildDate);
+  //   content += `{bold}{${colors.primary}-fg}Last Build Date:{/${colors.primary}-fg}{/bold} \n${date.toLocaleDateString()} ${date.toLocaleTimeString()}\n\n`;
+  // }
 
   detailsBox.setContent(content);
 }
@@ -308,18 +309,19 @@ function renderFeedDetails(
 /**
  * Shows a popup for adding or editing an RSS feed
  */
-async function showFeedEditPopup(
+async function showEditPopup(
   screen: blessed.Widgets.Screen,
-  feed: RssFeed | undefined,
-  feeds: RssFeed[],
-  state: FeedListState,
-  feedListBox: blessed.Widgets.ListElement,
+  category: Category | undefined,
+  categories: Category[],
+  state: CategoryListState,
+  categoryListBox: blessed.Widgets.ListElement,
   detailsBox?: blessed.Widgets.BoxElement,
   separator?: blessed.Widgets.LineElement
 ): Promise<void> {
-  const isAdd = feed === undefined;
+  const isAdd = category === undefined;
 
   const editFeedHelpBox = createHelpBox(screen, "edit-popup");
+
 
   // Create the popup box
   const popupBox = blessed.box({
@@ -350,7 +352,7 @@ async function showFeedEditPopup(
     style: {
       fg: colors.secondary,
     },
-    content: `{bold}${isAdd ? 'Add New RSS Feed' : 'Edit RSS Feed'}{/bold}`,
+    content: `{bold}${isAdd ? 'Kategorie Hinzufügen' : 'Kategorie Bearbeiten'}{/bold}`,
     tags: true
   });
 
@@ -385,36 +387,37 @@ async function showFeedEditPopup(
   });
 
   // URL input
-  const urlLabel = blessed.text({
+  const descriptionLabel = blessed.text({
     parent: popupBox,
     top: 8,
     left: 2,
     style: {
-      fg: colors.accent,
+    fg: colors.accent,
     },
-    content: 'URL:',
-  });
+    content: 'Beschreibung:',
+   });
 
-  const urlInput = blessed.textbox({
-    parent: popupBox,
-    top: 7,
-    left: 9,
-    width: 45,
-    height: 3,
-    inputOnFocus: true,
-    border: {
-      type: 'line',
-    },
-    style: {
-      focus: {
-        border: {
-          fg: colors.primary
-        }
-      }
-    }
-  });
+   const descriptionInput = blessed.textbox({
+     parent: popupBox,
+     top: 7,
+     left: 9,
+     width: 45,
+     height: 3,
+     inputOnFocus: true,
+     border: {
+       type: 'line',
+     },
+     style: {
+       focus: {
+         border: {
+           fg: colors.primary
+         }
+       }
+     }
+   });
 
   // Help text
+  /*
   const helpText = blessed.text({
     parent: popupBox,
     top: 5,
@@ -422,11 +425,12 @@ async function showFeedEditPopup(
     content: '{gray-fg}Name ist optional{/gray-fg}',
     tags: true
   });
+  */
 
   // Set current values if editing
-  if (!isAdd && feed) {
-    nameInput.setValue(feed.title);
-    urlInput.setValue(feed.link);
+  if (!isAdd && category) {
+    nameInput.setValue(category.name);
+    //urlInput.setValue(category.);
   }
 
   // Add to screen
@@ -440,9 +444,9 @@ async function showFeedEditPopup(
 
   function focusNext() {
     if (activeInput === nameInput) {
-      activeInput = urlInput;
-      urlInput.setValue(urlInput.getValue().replace(/\t$/, ""));
-      urlInput.focus();
+      activeInput = descriptionInput;
+      descriptionInput.setValue(descriptionInput.getValue().replace(/\t$/, ""));
+      descriptionInput.focus();
     } else {
       activeInput = nameInput;
       nameInput.setValue(nameInput.getValue().replace(/\t$/, ""));
@@ -452,7 +456,7 @@ async function showFeedEditPopup(
   }
 
   // Set up focus handlers for help text
-  [nameInput, urlInput].forEach(input => {
+  [nameInput, descriptionInput].forEach(input => {
     input.key('tab', function() {
       popupBox.focus();
       focusNext();
@@ -462,7 +466,7 @@ async function showFeedEditPopup(
       editFeedHelpBox.destroy();
       popupBox.destroy();
       screen.render();
-      feedListBox.focus();
+      categoryListBox.focus();
     });
 
     // Handle arrow key navigation between fields
@@ -475,7 +479,7 @@ async function showFeedEditPopup(
     });
 
     input.key('up', function() {
-      if (input === urlInput) {
+      if (input === descriptionInput) {
         focusNext();
         return false;
       }
@@ -484,12 +488,12 @@ async function showFeedEditPopup(
 
     input.key(['enter'], async () => {
       // Get values
-      const title = nameInput.getValue();
-      const url = urlInput.getValue();
+      const name = nameInput.getValue();
+      const description = descriptionInput.getValue();
 
       // Basic validation
-      if (!url) {
-        let errorBox = createErrorBox(screen, 'An URL is required   ');
+      if (!name) {
+        let errorBox = createErrorBox(screen, 'Der Name darf nicht leer sein');
         setTimeout(() => {
           errorBox.destroy();
           screen.render();
@@ -507,7 +511,7 @@ async function showFeedEditPopup(
         border: {
           type: 'line'
         },
-        content: 'Validating RSS feed...',
+        content: 'Speichern...',
         tags: true,
         align: 'center',
         valign: 'middle',
@@ -516,20 +520,23 @@ async function showFeedEditPopup(
 
       try {
         // Validate the feed URL
-        let feedData: RssFeed;
+        let categoryData: Category = {
+          name: name
+        };
+
+        // Save to database
+        let savedFeed: Category | undefined;
         try {
-          feedData = await validateRssFeed(url);
-          if (title && title !== feedData.title) {
-            feedData.title = title;
+          if (isAdd) {
+            savedFeed = await db.categories.save(categoryData);
+          } else {
+            savedFeed = await db.categories.update(category.id!, categoryData);
           }
+
         } catch (error) {
           let errorBox: blessed.Widgets.BoxElement;
-          if(error instanceof RssFeedNotFoundError) {
-            errorBox = createErrorBox(screen, `Die URL konnte nicht gefunden werden.  `);
-          } else if (error instanceof RssFeedInvalidError) {
-            errorBox = createErrorBox(screen, `Die URL ist kein gültiger RSS Feed.  `);
-          } else {
-            errorBox = createErrorBox(screen, `Error validating feed: ${error}   `);
+          if (error instanceof EntityCreateError) {
+            errorBox = createErrorBox(screen, `Diese Kategorie existiert bereits.  `);
           }
           setTimeout(() => {
             errorBox.destroy();
@@ -540,50 +547,29 @@ async function showFeedEditPopup(
           loadingBox.destroy();
         }
 
-        // Save to database
-        let savedFeed: RssFeed | undefined;
-        try {
-          if (isAdd) {
-            savedFeed = await db.rssFeeds.save(feedData);
-          } else {
-            savedFeed = await db.rssFeeds.update(feed.id!, feedData);
-          }
-
-        } catch (error) {
-          let errorBox: blessed.Widgets.BoxElement;
-          if (error instanceof EntityCreateError) {
-            errorBox = createErrorBox(screen, `Dieser RSS Feed existiert bereits.  `);
-          }
-          setTimeout(() => {
-            errorBox.destroy();
-            screen.render();
-          }, 2500);
-          return;
-        }
-
         // Update the feed list
         if (isAdd && savedFeed) {
-          feeds.push(savedFeed);
-          state.currentIndex = feeds.length - 1;
+          categories.push(savedFeed);
+          state.currentIndex = categories.length - 1;
         } else if (!isAdd && savedFeed) {
-          const index = feeds.findIndex(f => f.id === feed?.id);
+          const index = categories.findIndex(f => f.id === category?.id);
           if (index !== -1) {
-            feeds[index] = savedFeed;
+            categories[index] = savedFeed;
           }
         }
 
         popupBox.destroy();
         editFeedHelpBox.destroy();
-        let notificationBox = createNotificationBox(screen, `RSS feed ${isAdd ? 'added' : 'updated'} successfully   `);
+        let notificationBox = createNotificationBox(screen, `Kategorie wurde erfolgreich ${isAdd ? 'hinzugefügt' : 'angepasst'}  `);
         setTimeout(() => {
           notificationBox.destroy();
           screen.render();
         }, 2500);
-        renderFeedList(screen, feedListBox, feeds, state, detailsBox, separator);
-        feedListBox.focus();
+        renderList(screen, categoryListBox, categories, state, detailsBox, separator);
+        categoryListBox.focus();
 
       } catch (error) {
-        let errorBox = createErrorBox(screen, `Error ${isAdd ? 'adding' : 'updating'} feed: ${error}   `);
+        let errorBox = createErrorBox(screen, `Fehler: ${isAdd ? 'Hinzufügen' : 'Bearbeiten'} der Kategorie ist fehlgeschlagen   `);
         setTimeout(() => {
           errorBox.destroy();
           screen.render();

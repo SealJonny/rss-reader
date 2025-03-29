@@ -1,14 +1,12 @@
 import blessed from 'more-blessed';
 import { colors } from '../themes/default-theme';
-import { createErrorBox, createNotificationBox } from '../utils/ui-utils';
-import { RssFeed } from '../../../interfaces/rss-feed';
 import db from '../../../database/database';
-import { createHelpBox } from '../components/help-box';
-import { validateRssFeed } from '../../../rss/validater';
-import { RssFeedInvalidError, RssFeedNotFoundError } from '../../../errors/rss-feed';
+import helpBox, { createHelpBox } from '../components/help-box';
 import { EntityCreateError } from '../../../errors/database';
 import { getScreenWidth } from '../utils/feed-utils';
 import { Category } from '../../../interfaces/category';
+import notificationBox from '../components/notification';
+import { createNotificationBox } from '../utils/ui-utils';
 
 // Type for tracking expanded state of feeds
 type CategoryListState = {
@@ -111,11 +109,7 @@ export async function showEditCategoriesScreen(screen: blessed.Widgets.Screen): 
     categories = await db.categories.all();
     renderList(screen, categoryListBox, categories, state, detailsBox, separator);
   } catch (error) {
-    let errorBox = createErrorBox(screen, `Fehler beim Laden der Kategorien: ${error}   `);
-    setTimeout(() => {
-      errorBox.destroy();
-      screen.render();
-    }, 2500);
+    notificationBox.addNotifcation({message: `Fehler beim Laden der Kategorien: ${error}   `, durationInMs: 2500, isError: true});
   }
 
   // Key handler for the feed list
@@ -167,6 +161,7 @@ export async function showEditCategoriesScreen(screen: blessed.Widgets.Screen): 
     const selectedCategory = categories[state.currentIndex];
     if (selectedCategory.id !== undefined) {
       const cuttedTitle = selectedCategory.name.length > 20 ? `${selectedCategory.name.substring(0, 20)}...` : selectedCategory.name
+      notificationBox.pause();
       const notification = createNotificationBox(
         screen,
         `Bist du sicher dass du die Kategorie "${cuttedTitle}" löschen willst? [y/n]   `
@@ -186,19 +181,11 @@ export async function showEditCategoriesScreen(screen: blessed.Widgets.Screen): 
               }
 
               notification.destroy();
-              const notificationBox = createNotificationBox(screen, `Kategorie "${selectedCategory.name}" wurde gelöscht `);
-              setTimeout(() => {
-                notificationBox.destroy();
-                screen.render();
-              }, 2500);
+              notificationBox.addNotifcation({message: `Kategorie "${selectedCategory.name}" wurde gelöscht `, durationInMs: 3000, isError: true, highPriority: true})
               renderList(screen, categoryListBox, categories, state, detailsBox, separator);
             } catch (error) {
               notification.destroy();
-              let errorBox = createErrorBox(screen, `Fehler: Löschen der Kategorie "${selectedCategory.name}" ist fehlgeschlagen `);
-              setTimeout(() => {
-                errorBox.destroy();
-                screen.render();
-              }, 2500);
+              notificationBox.addNotifcation({message: `Fehler: Löschen der Kategorie "${selectedCategory.name}" ist fehlgeschlagen `, durationInMs: 3000, isError: true, highPriority: true})
             }
             notification.destroy();
             screen.render();
@@ -206,6 +193,7 @@ export async function showEditCategoriesScreen(screen: blessed.Widgets.Screen): 
             notification.destroy();
             screen.render();
           }
+          notificationBox.continue();
           resolve();
         });
       });
@@ -320,8 +308,7 @@ async function showEditPopup(
 ): Promise<void> {
   const isAdd = category === undefined;
 
-  const editFeedHelpBox = createHelpBox(screen, "edit-popup");
-
+  helpBox.setView("edit-popup");
 
   // Create the popup box
   const popupBox = blessed.box({
@@ -463,7 +450,7 @@ async function showEditPopup(
     });
 
     input.key(['escape'], () => {
-      editFeedHelpBox.destroy();
+      helpBox.resetView();
       popupBox.destroy();
       screen.render();
       categoryListBox.focus();
@@ -493,11 +480,7 @@ async function showEditPopup(
 
       // Basic validation
       if (!name) {
-        let errorBox = createErrorBox(screen, 'Der Name darf nicht leer sein');
-        setTimeout(() => {
-          errorBox.destroy();
-          screen.render();
-        }, 2500);
+        notificationBox.addNotifcation({message: 'Der Name darf nicht leer sein', durationInMs: 2500, isError: true, highPriority: true});
         return;
       }
 
@@ -534,14 +517,9 @@ async function showEditPopup(
           }
 
         } catch (error) {
-          let errorBox: blessed.Widgets.BoxElement;
           if (error instanceof EntityCreateError) {
-            errorBox = createErrorBox(screen, `Diese Kategorie existiert bereits.  `);
+            notificationBox.addNotifcation({message: `Diese Kategorie existiert bereits.  `, durationInMs: 2500, isError: true,});
           }
-          setTimeout(() => {
-            errorBox.destroy();
-            screen.render();
-          }, 2500);
           return;
         } finally {
           loadingBox.destroy();
@@ -559,21 +537,12 @@ async function showEditPopup(
         }
 
         popupBox.destroy();
-        editFeedHelpBox.destroy();
-        let notificationBox = createNotificationBox(screen, `Kategorie wurde erfolgreich ${isAdd ? 'hinzugefügt' : 'angepasst'}  `);
-        setTimeout(() => {
-          notificationBox.destroy();
-          screen.render();
-        }, 2500);
+        notificationBox.addNotifcation({message: `Kategorie wurde erfolgreich ${isAdd ? 'hinzugefügt' : 'angepasst'}  `, durationInMs: 2500, isError: false});
         renderList(screen, categoryListBox, categories, state, detailsBox, separator);
         categoryListBox.focus();
 
       } catch (error) {
-        let errorBox = createErrorBox(screen, `Fehler: ${isAdd ? 'Hinzufügen' : 'Bearbeiten'} der Kategorie ist fehlgeschlagen   `);
-        setTimeout(() => {
-          errorBox.destroy();
-          screen.render();
-        }, 2500);
+        notificationBox.addNotifcation({message: `Fehler: ${isAdd ? 'Hinzufügen' : 'Bearbeiten'} der Kategorie ist fehlgeschlagen   `, durationInMs: 2500, isError: true});
       } finally {
         loadingBox.destroy();
       }

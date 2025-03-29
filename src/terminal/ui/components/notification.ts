@@ -5,14 +5,16 @@ export type Notification = {
   message: string;
   durationInMs: number;
   isError: boolean;
+  highPriority?: boolean;
 }
 
 export class NotificationBox {
-  private box: blessed.Widgets.BoxElement
+  private box: blessed.Widgets.BoxElement | null = null;
   private queue: Notification[] = [];
   private isProcessing: boolean = false;
+  private isPaused: boolean = false;
 
-  constructor (screen: blessed.Widgets.Screen) {
+  public initialize(screen: blessed.Widgets.Screen) {
     this.box = blessed.box({
       parent: screen,
       bottom: 0,
@@ -25,7 +27,23 @@ export class NotificationBox {
   }
 
   public addNotifcation(notification: Notification) {
-    this.queue.push(notification);
+    if (notification.highPriority) {
+      this.queue.unshift(notification);
+    } else {
+      this.queue.push(notification);
+    }
+    this.processQueue();
+  }
+
+  public pause() {
+    if (this.box === null) return;
+    this.isPaused = true;
+    this.box.hide();
+    this.box.screen.render();
+  }
+
+  public continue() {
+    this.isPaused = false;
     this.processQueue();
   }
 
@@ -34,6 +52,8 @@ export class NotificationBox {
     this.isProcessing = true;
 
     while (this.queue.length > 0) {
+      if (this.isPaused) break;
+
       const notification = this.queue.shift();
       if (notification) {
         await this.show(notification);
@@ -44,6 +64,11 @@ export class NotificationBox {
 
   private async show(notification: Notification) {
     return new Promise<void>(resolve => {
+      if (this.box === null) {
+        resolve();
+        return;
+      }
+
       this.box.setContent(notification.message);
       if (notification.isError) {
         this.box.style = {
@@ -55,15 +80,23 @@ export class NotificationBox {
         }
       }
 
+      this.box.detach();
+      this.box.screen.append(this.box);
       this.box.show();
       this.box.screen.render();
 
       setTimeout(() => {
+        if (this.box === null) {
+          resolve();
+          return;
+        }
         this.box.hide();
         this.box.screen.render();
         resolve();
       }, notification.durationInMs || 3000);
     });
   }
-
 }
+
+const notificationBox = new NotificationBox();
+export default notificationBox;

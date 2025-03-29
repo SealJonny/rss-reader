@@ -2,7 +2,7 @@ import blessed from 'more-blessed';
 import { showStartAnimation } from './screens/start-animation';
 import { showRssFeedScreen } from './screens/rss-feed-screen';
 import { showMainScreen, MainMenuSelection } from './screens/main-screen';
-import { createHelpBox } from './components/help-box';
+import helpBox, { createHelpBox } from './components/help-box';
 import { createConfirmBox, createErrorBox, createNotificationBox } from './utils/ui-utils';
 import db from '../../database/database';
 import { Category, SystemCategory } from '../../interfaces/category';
@@ -11,6 +11,8 @@ import insertJob from '../../database/jobs/insert-job';
 import categoriseJob from '../../database/jobs/categorise-job';
 import { AbortError, JobAlreadyRunning } from '../../errors/general';
 import { showEditCategoriesScreen } from './screens/edit-categories-screen';
+import notificationBox, { NotificationBox } from './components/notification';
+
 
 export async function syncDatabase(screen: blessed.Widgets.Screen): Promise<void> {
   if (insertJob.isActive() || categoriseJob.isActive()) {
@@ -44,31 +46,21 @@ export async function syncDatabase(screen: blessed.Widgets.Screen): Promise<void
   }
 
   categoriseJob.once("complete", () => {
-    const box = createNotificationBox(screen, "Kategorisierung ist abgeschlossen   ");
-    setTimeout(() => {
-      box.destroy();
-      screen.render();
-    }, 2500);
+    notificationBox.addNotifcation({message: "Kategorisierung ist abgeschlossen   ", durationInMs: 2500, isError: false});
   });
 
   categoriseJob.once("error", () => {
-    const box = createErrorBox(screen, "Die Kategorisierung ist fehlgeschlagen   ");
-    setTimeout(() => {
-      box.destroy();
-      screen.render();
-    }, 2500);
+    notificationBox.addNotifcation({message: "Kategorisierung ist fehlgeschlagen   ", durationInMs: 2500, isError: true});
   });
 
   categoriseJob.execute().catch(error => {
     if (error instanceof JobAlreadyRunning) {
-      const box = createErrorBox(screen, "Die Synchronisation läuft bereits   ");
-      setTimeout(() => {
-        box.destroy()
-        screen.render();
-      }, 3000);
+      notificationBox.addNotifcation({message:  "Die Synchronisation läuft bereits   ", durationInMs: 3000, isError: true});
     }
   });
 }
+
+
 
 /**
  * Hauptfunktion für die UI-Steuerung
@@ -79,10 +71,13 @@ export async function main() {
 
   // Erstelle Hauptbildschirm
   const screen = blessed.screen({
-    smartCSR: true,
-    fullUnicode: true,
-    title: 'RSS Feed Reader',
+      smartCSR: true,
+      fullUnicode: true,
+      title: 'RSS Feed Reader',
   });
+
+  helpBox.initialize(screen);
+  notificationBox.initialize(screen);
 
   // Zustand für Quit-Bestätigung
   let quitPending = false;
@@ -117,9 +112,12 @@ export async function main() {
     }
 
     // Hilfsbox anzeigen und Benutzerauswahl vom Hauptscreen holen
-    const helpBox = createHelpBox(screen, "main-screen");
+    //const helpBox = createHelpBox(screen, "main-screen");
+
+    helpBox.setView("main-screen");
     const menuChoice = await showMainScreen(screen, categories);
-    helpBox.destroy();
+    helpBox.resetView();
+    //helpBox.destroy();
     screen.render();
 
     // Benutzeraktion verarbeiten
@@ -158,13 +156,13 @@ export async function main() {
  * Hilfsfunktion für das Anzeigen verschiedener Feed-Typen
  */
 async function showFeed(screen: blessed.Widgets.Screen, category: Category | SystemCategory) {
-  const helpBox = createHelpBox(screen, "rss-feed");
+  helpBox.setView("rss-feed");
   try {
     const rssFeed = await showRssFeedScreen(screen, category);
     rssFeed.focus();
     rssFeed.destroy();
   } finally {
-    helpBox.destroy();
+    helpBox.resetView();
     screen.render();
   }
 }

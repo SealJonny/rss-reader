@@ -6,8 +6,7 @@ import { colors } from '../themes/default-theme';
 import { getScreenWidth, formatTerminalText, countDigits } from '../utils/feed-utils';
 import { Category, isSystemCategory, SystemCategory } from '../../../interfaces/category';
 import db from '../../../database/database';
-
-let errorBox: blessed.Widgets.BoxElement;
+import notificationBox from '../components/notification';
 
 /**
  * Zeigt die Details eines Nachrichtenelements an
@@ -88,7 +87,7 @@ export async function showRssFeedScreen(
       categoryName = category.name;
     }
   } catch (error) {
-    errorBox = createErrorBox(screen, `Fehler beim Abrufen der Nachrichten: ${error}`);
+    notificationBox.addNotifcation({message: `Fehler beim Abrufen der Nachrichten: ${error}`, durationInMs: 3000, isError: true});
   }
 
   // Container für den Feed erstellen
@@ -96,7 +95,7 @@ export async function showRssFeedScreen(
     top: 0,
     left: 0,
     width: 'shrink',
-    height: '95%',
+    height: '100%-2',
     padding: 1,
     style: { bg: colors.background },
     keys: true,
@@ -123,29 +122,44 @@ export async function showRssFeedScreen(
 
     // Tastatur-Ereignishandler einrichten
     // Favorisieren-Funktion
+
+    let favoriseNotification: blessed.Widgets.BoxElement;
+    let creationTime = Date.now();
+
     feedBox.key(['f'], () => {
       db.news.setFavorite(newsItems[currentIndex].id!, !newsItems[currentIndex].isFavorite).then(item => {
         if (item) {
+          if (favoriseNotification) {
+            favoriseNotification.destroy();
+            screen.render();
+          }
+          creationTime = Date.now();
+
           newsItems[currentIndex] = item;
-          let favoriseNotificatoin: blessed.Widgets.BoxElement;
           if (item.isFavorite) {
             feedBox.setContent('');
             screen.render();
             showNewsItem(newsItems[currentIndex], currentIndex, newsItems.length, feedBox, screen);
-            favoriseNotificatoin = createNotificationBox(screen, ' ✻  Aktueller Artikel wurde favorisiert! ✻');
+
+            notificationBox.pause();
+            favoriseNotification = createNotificationBox(screen, ' ✻  Aktueller Artikel wurde favorisiert! ✻');
           } else {
             feedBox.setContent('');
             screen.render();
             showNewsItem(newsItems[currentIndex], currentIndex, newsItems.length, feedBox, screen);
-            favoriseNotificatoin = createNotificationBox(screen, ' ✻  Aktueller Artikel wurde aus den Favoriten entfernt! ✻');
+
+            notificationBox.pause();
+            favoriseNotification = createNotificationBox(screen, ' ✻  Aktueller Artikel wurde aus den Favoriten entfernt! ✻');
           }
-          screen.render();
+          //screen.render();
           // Nach kurzer Verzögerung wieder den Artikel anzeigen
           setTimeout(() => {
             if (currentIndex < newsItems.length) {
-              favoriseNotificatoin.setContent('')
-              screen.render();
-              favoriseNotificatoin.destroy();
+
+              if (Date.now() - creationTime >= 2500) {
+                favoriseNotification.destroy();
+              }
+              notificationBox.continue();
               screen.render();
               feedBox.setContent('');
               screen.render();
@@ -161,12 +175,8 @@ export async function showRssFeedScreen(
 
     feedBox.key(['o'], () => {
       let test = open(newsItems[currentIndex].link).catch((err) => {
-        errorBox = createErrorBox(screen, `Fehler beim Öffnen des Links: ${err}`);
+        notificationBox.addNotifcation({message: `Fehler beim Öffnen des Links: ${err}`, durationInMs: 3000, isError: true});
       });
-      if (errorBox) {
-        errorBox.setContent(' ')
-        errorBox.destroy();
-      }
     });
 
     // Navigation: Nächster Artikel
@@ -185,10 +195,6 @@ export async function showRssFeedScreen(
   // Warten, bis der Benutzer zurück zum Hauptmenü möchte
   await new Promise<void>((resolve) => {
     feedBox.key(['q'], () => {
-      if (errorBox) {
-        errorBox.setContent(' ')
-        errorBox.destroy();
-      }
       resolve();
     });
   });

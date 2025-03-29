@@ -1,12 +1,10 @@
 import blessed from 'more-blessed';
-import { createHelpBox } from '../components/help-box';
-import { colors, formatHeading } from '../themes/default-theme';
+import helpBox from '../components/help-box';
+import { colors } from '../themes/default-theme';
 import { createSelectableList, ListItem } from '../components/selectable-list';
 import { colorText, hexToRgb } from '../utils/animation-utils';
-import { Categories } from '../../../database/tables/categories';
-import { Category, SystemCategory } from '../../../interfaces/category';
+import { Category } from '../../../interfaces/category';
 import { getScreenHeight } from '../utils/feed-utils';
-import insertJob from '../../../database/jobs/insert-job';
 import categoriseJob from '../../../database/jobs/categorise-job';
 
 /**
@@ -32,7 +30,7 @@ export async function showMainScreen(screen: blessed.Widgets.Screen, categories:
       top: 0,
       left: 0,
       width: '100%',
-      height: '100%-2',
+      height: 'shrink',
     });
 
     screen.append(mainScreenBox);
@@ -130,7 +128,7 @@ export async function showMainScreen(screen: blessed.Widgets.Screen, categories:
 
     // Funktion zum Anzeigen des Kategorien-Untermenüs
     function showCategoryMenu() {
-      const helpBox = createHelpBox(screen, "nested-list");
+      helpBox.setView("nested-list");
 
       // Kategorien-Items definieren
       const categoryItems: ListItem[] = [
@@ -158,8 +156,9 @@ export async function showMainScreen(screen: blessed.Widgets.Screen, categories:
 
       // Tastatur-Handler für das Untermenü
       categoryList.key(['backspace', 'q'], () => {
-        helpBox.destroy();
+        helpBox.resetView();
         categoryList.destroy();
+        helpBox.setView("main-screen");
         screen.render();
         list.focus();
       });
@@ -172,8 +171,9 @@ export async function showMainScreen(screen: blessed.Widgets.Screen, categories:
         if (selectedItem && !selectedItem.isHeading) {
           resolve(selectedItem.key as number);
           cleanup();
-          helpBox.destroy();
+          helpBox.resetView();
           categoryList.destroy();
+          screen.render();
         }
       });
     }

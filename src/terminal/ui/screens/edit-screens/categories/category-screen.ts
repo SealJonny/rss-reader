@@ -142,14 +142,6 @@ export async function showEditCategoriesScreen(screen: blessed.Widgets.Screen): 
     helpBox.setView("edit-categories-list");
   });
 
-  // Add new feed through ChatGPT (c)
-  // Todo: Implement this feature
-  categoryListBox.key(['c'], async () => {
-    helpBox.resetView();
-    await showEditPopup(screen, undefined, categories, state, categoryListBox, detailsBox, separator);
-    helpBox.setView("edit-categories-list");
-  });
-
   // Edit feed (e)
   categoryListBox.key(['e'], async () => {
     if (categories.length === 0) return;

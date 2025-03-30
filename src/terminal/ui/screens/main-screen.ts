@@ -16,8 +16,7 @@ export enum MainMenuSelection {
   FAVORITE_FEED = -3,
   EDIT_URLS = -4,
   EDIT_CATEGORIES = -5,
-  START_ANIMATION = -6,
-  SYNC = -7
+  SYNC = -6
 }
 
 /**

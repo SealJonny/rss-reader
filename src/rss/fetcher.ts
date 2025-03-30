@@ -38,7 +38,7 @@ export async function fetchRss(feed: RssFeed, signal: AbortSignal): Promise<News
 
   const lastBuildDateRaw = channel.querySelector("lastBuildDate")?.textContent;
   if (lastBuildDateRaw) {
-    const time = new Date(lastBuildDateRaw).getTime();
+    const time = new Date(lastBuildDateRaw).getTime() || null;
     feed.lastBuildDate = time;
   }
 

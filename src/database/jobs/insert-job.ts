@@ -30,6 +30,12 @@ export class InsertJob extends DbJob<ErrorFeed[] | null> {
       throw error;
     }
 
+    if (feeds.length === 0) {
+      this.isRunning = false;
+      this.sendStatusComplete();
+      return null;
+    }
+
     const result = await Promise.allSettled(feeds.map(async f => fetchRss(f, this.abortController.signal)));
     const errorFeeds: ErrorFeed[] = []
 

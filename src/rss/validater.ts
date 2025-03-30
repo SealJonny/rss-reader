@@ -52,10 +52,10 @@ export async function validateRssFeed(link: string): Promise<RssFeed> {
   const lastBuildDate = channel.querySelector("lastBuildDate")?.textContent;
   let lastBuildDateInMs: number | null = null;
   if (lastBuildDate) {
-    lastBuildDateInMs = new Date(lastBuildDate).getTime();
+    lastBuildDateInMs = new Date(lastBuildDate).getTime() || null;
   }
 
-  const language = channel.querySelector("language")?.textContent ?? null;
+  const language = channel.querySelector("language")?.textContent || null;
 
   const rssFeed: RssFeed = {
     title: title,

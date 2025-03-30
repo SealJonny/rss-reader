@@ -35,7 +35,11 @@ export class CategoriseJob extends DbJob<void> {
       throw error;
     }
 
-    if (categories.length === 0) return;
+    if (categories.length === 0) {
+      this.isRunning = false;
+      this.sendStatusComplete();
+      return;
+    }
 
     for (let job of jobs) {
       if (this.abortController.signal.aborted) {

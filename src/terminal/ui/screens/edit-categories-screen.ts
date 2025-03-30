@@ -1,7 +1,7 @@
 import blessed from 'more-blessed';
 import { colors } from '../themes/default-theme';
 import db from '../../../database/database';
-import helpBox, { createHelpBox } from '../components/help-box';
+import helpBox  from '../components/help-box';
 import { EntityCreateError } from '../../../errors/database';
 import { getScreenWidth } from '../utils/feed-utils';
 import { Category } from '../../../interfaces/category';
@@ -95,7 +95,7 @@ export async function showEditCategoriesScreen(screen: blessed.Widgets.Screen): 
   categoryListBox.focus();
 
   // Add help box
-  const helpBox = createHelpBox(screen, "edit-categories-list");
+  helpBox.setView("edit-categories-list");
 
   screen.render();
 
@@ -137,13 +137,17 @@ export async function showEditCategoriesScreen(screen: blessed.Widgets.Screen): 
 
   // Add new feed (a)
   categoryListBox.key(['a'], async () => {
+    helpBox.resetView();
     await showEditPopup(screen, undefined, categories, state, categoryListBox, detailsBox, separator);
+    helpBox.setView("edit-categories-list");
   });
 
   // Add new feed through ChatGPT (c)
   // Todo: Implement this feature
   categoryListBox.key(['c'], async () => {
+    helpBox.resetView();
     await showEditPopup(screen, undefined, categories, state, categoryListBox, detailsBox, separator);
+    helpBox.setView("edit-categories-list");
   });
 
   // Edit feed (e)
@@ -151,7 +155,9 @@ export async function showEditCategoriesScreen(screen: blessed.Widgets.Screen): 
     if (categories.length === 0) return;
 
     const selectedCategory = categories[state.currentIndex];
+    helpBox.resetView();
     await showEditPopup(screen, selectedCategory, categories, state, categoryListBox, detailsBox, separator);
+    helpBox.setView("edit-categories-list");
   });
 
   // Delete feed (d)
@@ -204,7 +210,7 @@ export async function showEditCategoriesScreen(screen: blessed.Widgets.Screen): 
   await new Promise<void>((resolve) => {
     categoryListBox.key(['q'], () => {
       categoryListBox.destroy();
-      helpBox.destroy();
+      helpBox.resetView();
       detailsBox.destroy();
       separator.destroy();
       headerBox.destroy();
@@ -307,245 +313,178 @@ async function showEditPopup(
   separator?: blessed.Widgets.LineElement
 ): Promise<void> {
   const isAdd = category === undefined;
-
   helpBox.setView("edit-popup");
 
-  // Create the popup box
-  const popupBox = blessed.box({
-    top: 'center',
+  // Create a form
+  const form = blessed.form<{name: string; description: string}>({
+    parent: screen,
+    keys: false,
     left: 'center',
-    width: 62,
-    height: 14,
+    top: 'center',
+    width: '50%+5',
+    height: 15,
     padding: 1,
-    border: {
-      type: 'line'
-    },
-    shadow: true,
-    tags: true,
+    border: 'line',
     style: {
+      label: {
+        fg: colors.primary
+      },
       bg: colors.background,
       fg: colors.text.normal,
       border: {
         fg: colors.secondary
-      },
-    }
+      }
+    },
+    label: category ? "Kategorie Bearbeiten" : "Kategorie Hinzufügen"
   });
 
-  // Title
-  const titleLabel = blessed.text({
-    parent: popupBox,
+  // Create a label for the name input
+  blessed.text({
+    parent: form,
     top: 0,
     left: 2,
     style: {
-      fg: colors.secondary,
+      fg: colors.accent
     },
-    content: `{bold}${isAdd ? 'Kategorie Hinzufügen' : 'Kategorie Bearbeiten'}{/bold}`,
-    tags: true
+    content: 'Name:'
   });
 
-  // Name input
-  const nameLabel = blessed.text({
-    parent: popupBox,
-    top: 3,
-    left: 2,
-    style: {
-      fg: colors.accent,
-    },
-    content: 'Name:',
-  });
-
+  // Create the name input field
   const nameInput = blessed.textbox({
-    parent: popupBox,
-    top: 2,
-    left: 9,
-    width: 45,
+    parent: form,
+    name: 'name',
+    keys: false,
+    top: 1,
+    left: 2,
+    width: '90%',
     height: 3,
-    inputOnFocus: true,
-    border: {
-      type: 'line',
-    },
+    border: 'line',
     style: {
       focus: {
         border: {
           fg: colors.primary
         }
       }
+    },
+    inputOnFocus: true
+  });
+  if (category) {
+    nameInput.setValue(category.name);
+  }
+
+  // Create a label for the description input
+  blessed.text({
+    parent: form,
+    top: 5,
+    left: 2,
+    content: 'Description:',
+    style: {
+      fg: colors.accent
     }
   });
 
-  // URL input
-  const descriptionLabel = blessed.text({
-    parent: popupBox,
-    top: 8,
+  // Create the description textarea
+  const descriptionInput = blessed.textarea({
+    parent: form,
+    name: 'description',
+    keys: false,
+    top: 6,
     left: 2,
+    width: '90%',
+    height: 5,
+    border: 'line',
     style: {
-    fg: colors.accent,
+      focus: {
+        border: {
+          fg: colors.primary
+        }
+      }
     },
-    content: 'Beschreibung:',
-   });
-
-   const descriptionInput = blessed.textbox({
-     parent: popupBox,
-     top: 7,
-     left: 9,
-     width: 45,
-     height: 3,
-     inputOnFocus: true,
-     border: {
-       type: 'line',
-     },
-     style: {
-       focus: {
-         border: {
-           fg: colors.primary
-         }
-       }
-     }
-   });
-
-  // Help text
-  /*
-  const helpText = blessed.text({
-    parent: popupBox,
-    top: 5,
-    right: 5,
-    content: '{gray-fg}Name ist optional{/gray-fg}',
-    tags: true
+    inputOnFocus: true
   });
-  */
-
-  // Set current values if editing
-  if (!isAdd && category) {
-    nameInput.setValue(category.name);
-    //urlInput.setValue(category.);
+  if (category) {
+    descriptionInput.setValue("test\ntest");
   }
 
-  // Add to screen
-  screen.append(popupBox);
-  popupBox.focus();
+  form.key(['enter'], () => form.submit());
+  form.key(['escape', 'q'], () => form.reset());
+
+  form.key(['tab'], () => {
+    form.focusNext();
+    screen.render();
+  });
+
+  nameInput.key(['tab'], () => {
+    form.focusNext();
+    screen.render();
+  });
+
+  descriptionInput.key(['tab'], () => {
+    form.focusNext();
+    screen.render();
+  });
+
+  nameInput.key(['escape'], () => form.focus());
+  descriptionInput.key(['escape'], () => form.focus());
+
+  // Focus on the form
   nameInput.focus();
+
+  // Render screen
   screen.render();
 
-  // Handle field navigation
-  let activeInput = nameInput;
 
-  function focusNext() {
-    if (activeInput === nameInput) {
-      activeInput = descriptionInput;
-      descriptionInput.setValue(descriptionInput.getValue().replace(/\t$/, ""));
-      descriptionInput.focus();
-    } else {
-      activeInput = nameInput;
-      nameInput.setValue(nameInput.getValue().replace(/\t$/, ""));
-      nameInput.focus();
-    }
-    screen.render();
-  }
-
-  // Set up focus handlers for help text
-  [nameInput, descriptionInput].forEach(input => {
-    input.key('tab', function() {
-      popupBox.focus();
-      focusNext();
-    });
-
-    input.key(['escape'], () => {
-      helpBox.resetView();
-      popupBox.destroy();
-      screen.render();
-      categoryListBox.focus();
-    });
-
-    // Handle arrow key navigation between fields
-    input.key('down', function() {
-      if (input === nameInput) {
-        focusNext();
-        return false;
-      }
-      return true;
-    });
-
-    input.key('up', function() {
-      if (input === descriptionInput) {
-        focusNext();
-        return false;
-      }
-      return true;
-    });
-
-    input.key(['enter'], async () => {
-      // Get values
-      const name = nameInput.getValue();
-      const description = descriptionInput.getValue();
-
-      // Basic validation
-      if (!name) {
+  await new Promise<void>(resolve => {
+    // On form submission
+    form.on('submit', async (data) => {
+      if (data.name.length === 0) {
         notificationBox.addNotifcation({message: 'Der Name darf nicht leer sein', durationInMs: 2500, isError: true, highPriority: true});
         return;
       }
 
-      // Show loading indicator
-      const loadingBox = blessed.box({
-        parent: screen,
-        top: 'center',
-        left: 'center',
-        width: 30,
-        height: 3,
-        border: {
-          type: 'line'
-        },
-        content: 'Speichern...',
-        tags: true,
-        align: 'center',
-        valign: 'middle',
-      });
-      screen.render();
-
-      try {
-        // Validate the feed URL
-        let categoryData: Category = {
-          name: name
-        };
-
-        // Save to database
-        let savedFeed: Category | undefined;
-        try {
-          if (isAdd) {
-            savedFeed = await db.categories.save(categoryData);
-          } else {
-            savedFeed = await db.categories.update(category.id!, categoryData);
-          }
-
-        } catch (error) {
-          if (error instanceof EntityCreateError) {
-            notificationBox.addNotifcation({message: `Diese Kategorie existiert bereits.  `, durationInMs: 2500, isError: true,});
-          }
-          return;
-        } finally {
-          loadingBox.destroy();
-        }
-
-        // Update the feed list
-        if (isAdd && savedFeed) {
-          categories.push(savedFeed);
-          state.currentIndex = categories.length - 1;
-        } else if (!isAdd && savedFeed) {
-          const index = categories.findIndex(f => f.id === category?.id);
-          if (index !== -1) {
-            categories[index] = savedFeed;
-          }
-        }
-
-        popupBox.destroy();
-        notificationBox.addNotifcation({message: `Kategorie wurde erfolgreich ${isAdd ? 'hinzugefügt' : 'angepasst'}  `, durationInMs: 2500, isError: false});
-        renderList(screen, categoryListBox, categories, state, detailsBox, separator);
-        categoryListBox.focus();
-
-      } catch (error) {
-        notificationBox.addNotifcation({message: `Fehler: ${isAdd ? 'Hinzufügen' : 'Bearbeiten'} der Kategorie ist fehlgeschlagen   `, durationInMs: 2500, isError: true});
-      } finally {
-        loadingBox.destroy();
+      if (category) {
+        category.name = data.name || category.name;
+      } else {
+        category = { name: data.name }
       }
+
+      let savedCategory: Category | undefined;
+      try {
+        savedCategory = await db.categories.save(category);
+      } catch (error) {
+        if (error instanceof EntityCreateError) {
+          notificationBox.addNotifcation({message: `Diese Kategorie existiert bereits.  `, durationInMs: 2500, isError: true,});
+        }
+        return;
+      }
+
+      if (isAdd && savedCategory) {
+        categories.push(savedCategory);
+        state.currentIndex = categories.length - 1;
+      } else if (!isAdd && savedCategory) {
+        const index = categories.findIndex(c => c.id === category?.id);
+        if (index !== -1) {
+          categories[index] = savedCategory;
+        }
+      }
+
+      notificationBox.addNotifcation({message: `Kategorie wurde erfolgreich ${isAdd ? 'hinzugefügt' : 'angepasst'}  `, durationInMs: 2500, isError: false});
+      form.destroy();
+      helpBox.resetView();
+      renderList(screen, categoryListBox, categories, state, detailsBox, separator);
+      categoryListBox.focus();
+      resolve();
     });
-  });
+
+
+    // On form cancel
+    form.on('reset', () => {
+      form.destroy();
+      helpBox.resetView();
+      renderList(screen, categoryListBox, categories, state, detailsBox, separator);
+      categoryListBox.focus();
+      resolve();
+    });
+
+  })
 }

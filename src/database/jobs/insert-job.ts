@@ -1,3 +1,4 @@
+import { EntityUpdateError } from "../../errors/database";
 import { AbortError, JobAlreadyRunning } from "../../errors/general";
 import { RssFeed } from "../../interfaces/rss-feed";
 import { fetchRss } from "../../rss/fetcher";
@@ -43,6 +44,18 @@ export class InsertJob extends DbJob<ErrorFeed[] | null> {
         errorFeeds.push({feedId: feedId, errorMsg: String(r.reason)});
       }
     });
+
+    feeds = feeds.filter(f => !errorFeeds.find(e => e.feedId === f.id));
+
+    try {
+      for (let f of feeds) {
+        await db.rssFeeds.save(f);
+      }
+    } catch (error) {
+      this.isRunning = false;
+      this.sendStatusError();
+      throw error;
+    }
 
     const news = result
       .filter(r => r.status === "fulfilled")

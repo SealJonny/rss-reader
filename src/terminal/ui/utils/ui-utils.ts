@@ -53,7 +53,7 @@ export function createNotificationBox(screen: blessed.Widgets.Screen, notificati
     bottom: 0,
     left: 0,
     tags: true,
-    width: 'shrink',
+    width: '100%',
     height: 'shrink',
     align: 'left',
     valign: 'middle',

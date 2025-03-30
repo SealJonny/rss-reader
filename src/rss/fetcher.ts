@@ -36,6 +36,12 @@ export async function fetchRss(feed: RssFeed, signal: AbortSignal): Promise<News
     throw new RssFeedInvalidError("No channel tag found in response!", feed.link);
   }
 
+  const lastBuildDateRaw = channel.querySelector("lastBuildDate")?.textContent;
+  if (lastBuildDateRaw) {
+    const time = new Date(lastBuildDateRaw).getTime();
+    feed.lastBuildDate = time;
+  }
+
   const items = Array.from(channel.querySelectorAll("item"))
   let news = items.map(item => parseNewsItem(item, feed.id!));
 

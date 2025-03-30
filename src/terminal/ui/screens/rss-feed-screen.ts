@@ -1,7 +1,7 @@
 import blessed from 'more-blessed';
 import open from 'open';
 import { NewsItem } from "../../../interfaces/news-item";
-import { createErrorBox, createNotificationBox } from "../utils/ui-utils";
+import { createNotificationBox } from "../utils/ui-utils";
 import { colors } from '../themes/default-theme';
 import { getScreenWidth, formatTerminalText, countDigits } from '../utils/feed-utils';
 import { Category, isSystemCategory, SystemCategory } from '../../../interfaces/category';

@@ -6,13 +6,13 @@ import helpBox from './components/help-box';
 import { createConfirmBox } from './utils/ui-utils';
 import db from '../../database/database';
 import { Category, SystemCategory } from '../../interfaces/category';
-import { showEditFeedsScreen } from './screens/edit-feeds-screen';
 import insertJob from '../../database/jobs/insert-job';
 import categoriseJob from '../../database/jobs/categorise-job';
 import { AbortError, JobAlreadyRunning } from '../../errors/general';
-import { showEditCategoriesScreen } from './screens/edit-categories-screen';
-import notificationBox, { NotificationBox } from './components/notification';
+import notificationBox from './components/notification';
 import { EntityUpdateError } from '../../errors/database';
+import { showEditCategoriesScreen } from './screens/edit-screens/categories/category-screen';
+import { showEditFeedsScreen } from './screens/edit-screens/feeds/feeds-screen';
 
 
 export async function syncDatabase(screen: blessed.Widgets.Screen): Promise<void> {

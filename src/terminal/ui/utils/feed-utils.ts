@@ -31,7 +31,8 @@ export function formatTerminalText(prefix:string = '  ',text: string, maxWidth: 
   const indentation = ' '.repeat(prefix.length);
 
   // Entferne überschüssige Leerzeichen und normalisiere Zeilenumbrüche
-  const normalizedText = text.replace(/\s+/g, ' ').trim();
+  // const normalizedText = text.replace(/\s+/g, ' ').trim();
+  const normalizedText = (text || "").replace(/\s+/g, ' ').trim();
 
   // Die effektive Breite für den Text nach Abzug des Paddings und des Präfixes
   const effectiveWidth = maxWidth - 2 - prefix.length;

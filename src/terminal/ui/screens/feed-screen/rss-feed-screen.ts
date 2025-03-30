@@ -13,13 +13,13 @@ import { showSummarizePopup } from './popups/summarize-popup';
 /**
  * Zeigt die Details eines Nachrichtenelements an
  */
-function showNewsItem(
+async function showNewsItem(
   item: NewsItem,
   index: number,
   total: number,
   feedBox: blessed.Widgets.BoxElement,
   screen: blessed.Widgets.Screen
-): void {
+): Promise<void> {
   // Erst Inhalt leeren und dann rendern
   feedBox.setContent('');
   screen.render();
@@ -49,8 +49,19 @@ function showNewsItem(
   // Beschreibung mit Einrückung für bessere Lesbarkeit
   content += `{white-fg}${formatTerminalText("📖 ", item.description, getScreenWidth(screen))}{/white-fg}\n\n`;
 
-  // Link in Akzentfarbe
-  content += `{${colors.accent}-fg}${formatTerminalText("🔗 ", item.link, getScreenWidth(screen))}{/${colors.accent}-fg}\n`;
+  // Kategorie
+  const categoriesResult = await db.join.getCategoriesForNews(item.id!);
+  const categories = categoriesResult ? categoriesResult.map((c: Category) => c.name).join(', ') : '';
+  if (categories.length > 0) {
+  content += `{${colors.accent}-fg}${formatTerminalText("📂 ", categories, getScreenWidth(screen))}{/${colors.accent}-fg}\n\n`
+  }
+
+  // Link
+  const url = item.link.replace(/^(?:https?:\/\/)?([^\/]+\/).*$/, '$1');
+  content += `{${colors.text.muted}-fg}${formatTerminalText("🔗 ", url, getScreenWidth(screen))}{/${colors.text.muted}-fg}\n\n`;
+
+  // Quellenangabe wenn vorhanden
+  content += `{${colors.text.muted}-fg}${formatTerminalText("📝 ", item.source!, getScreenWidth(screen))}{/${colors.text.muted}-fg}\n`;
 
   feedBox.setContent(content);
   screen.render();
@@ -140,7 +151,7 @@ export async function showRssFeedScreen(
   }
 
   if (newsItems.length > 0) {
-    showNewsItem(newsItems[currentIndex], currentIndex, newsItems.length, feedBox, screen);
+    await showNewsItem(newsItems[currentIndex], currentIndex, newsItems.length, feedBox, screen);
 
     // Tastatur-Ereignishandler einrichten
     // Favorisieren-Funktion
@@ -149,7 +160,7 @@ export async function showRssFeedScreen(
     let creationTime = Date.now();
 
     feedBox.key(['f'], () => {
-      db.news.setFavorite(newsItems[currentIndex].id!, !newsItems[currentIndex].isFavorite).then(item => {
+      db.news.setFavorite(newsItems[currentIndex].id!, !newsItems[currentIndex].isFavorite).then(async item =>  {
         if (item) {
           if (favoriseNotification) {
             favoriseNotification.destroy();
@@ -161,21 +172,21 @@ export async function showRssFeedScreen(
           if (item.isFavorite) {
             feedBox.setContent('');
             screen.render();
-            showNewsItem(newsItems[currentIndex], currentIndex, newsItems.length, feedBox, screen);
+            await showNewsItem(newsItems[currentIndex], currentIndex, newsItems.length, feedBox, screen);
 
             notificationBox.pause();
             favoriseNotification = createNotificationBox(screen, ' ✻  Aktueller Artikel wurde favorisiert! ✻');
           } else {
             feedBox.setContent('');
             screen.render();
-            showNewsItem(newsItems[currentIndex], currentIndex, newsItems.length, feedBox, screen);
+            await showNewsItem(newsItems[currentIndex], currentIndex, newsItems.length, feedBox, screen);
 
             notificationBox.pause();
             favoriseNotification = createNotificationBox(screen, ' ✻  Aktueller Artikel wurde aus den Favoriten entfernt! ✻');
           }
           //screen.render();
           // Nach kurzer Verzögerung wieder den Artikel anzeigen
-          setTimeout(() => {
+          setTimeout(async () => {
             if (currentIndex < newsItems.length) {
 
               if (Date.now() - creationTime >= 2500) {
@@ -185,7 +196,7 @@ export async function showRssFeedScreen(
               screen.render();
               feedBox.setContent('');
               screen.render();
-              showNewsItem(newsItems[currentIndex], currentIndex, newsItems.length, feedBox, screen);
+              await showNewsItem(newsItems[currentIndex], currentIndex, newsItems.length, feedBox, screen);
               screen.render();
             }
           }, 2500);
@@ -208,15 +219,15 @@ export async function showRssFeedScreen(
     })
 
     // Navigation: Nächster Artikel
-    feedBox.key(['down', 'j'], () => {
+    feedBox.key(['down', 'j'],async () => {
       currentIndex = (currentIndex + 1) % newsItems.length;
-      showNewsItem(newsItems[currentIndex], currentIndex, newsItems.length, feedBox, screen);
+      await showNewsItem(newsItems[currentIndex], currentIndex, newsItems.length, feedBox, screen);
     });
 
     // Navigation: Vorheriger Artikel
-    feedBox.key(['up', 'k'], () => {
+    feedBox.key(['up', 'k'],async () => {
       currentIndex = currentIndex - 1 >= 0 ? currentIndex - 1 : newsItems.length - 1;
-      showNewsItem(newsItems[currentIndex], currentIndex, newsItems.length, feedBox, screen);
+      await showNewsItem(newsItems[currentIndex], currentIndex, newsItems.length, feedBox, screen);
     });
   }
 

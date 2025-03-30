@@ -4,7 +4,10 @@ import { NewsItem } from "../interfaces/news-item";
 export function parseHtmlToText(data: string | null | undefined): string | null {
   if (!data) return null;
 
-  let dom = new JSDOM(data);
+  let dom = new JSDOM(data, { contentType: "text/html"});
+
+  dom.window.document.querySelectorAll("script, style").forEach(el => el.remove());
+
   let html = dom.window.document.body || dom.window.document;
 
   function extractText(node: Node): string {

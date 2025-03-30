@@ -2,7 +2,7 @@ import { JSDOM } from "jsdom";
 import { RssFeedInvalidError, RssFeedNotFoundError, RssFeedError } from "../errors/rss-feed";
 import { NewsItem } from "../interfaces/news-item";
 import { RssFeed } from "../interfaces/rss-feed";
-import { parseNewsItem } from "./parser";
+import { parseHtmlToText, parseNewsItem } from "./parser";
 
 
 /**
@@ -46,4 +46,29 @@ export async function fetchRss(feed: RssFeed, signal: AbortSignal): Promise<News
   let news = items.map(item => parseNewsItem(item, feed.id!));
 
   return news;
+}
+
+export async function fetchWebpage(news: string): Promise<string | null> {
+  const result = await fetch(news);
+  if (result.status === 404) {
+    throw new Error("Could not find a webpage at the specified url");
+  }
+
+  if (!result.ok) {
+    throw new Error(`Fetching the webpage failed with status code ${result.status}`);
+  }
+
+  // Check if content type matches any of xml related content type
+  let contentType = result.headers.get("Content-Type")?.toLowerCase() || "";
+  const semicolonIndex = contentType.indexOf(";")
+  if (semicolonIndex !== -1) {
+    contentType = contentType.slice(0, semicolonIndex);
+  }
+
+  if (!(contentType === "application/html" || contentType === "text/html" || contentType === "application/xhtml+xml")) {
+      throw new Error(`Content-Type ${contentType} does not match 'application/html', 'text/html', 'application/xhtml+xml'`);
+  }
+
+  const text = await result.text();
+  return parseHtmlToText(text);
 }

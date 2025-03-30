@@ -8,6 +8,6 @@ export interface NewsItem {
   isFavorite: boolean;
   isProcessed: boolean,
   source: string | null;
-  pubDate: string | null;
+  pubDate: number | null;
   rssFeedId: number;
 }

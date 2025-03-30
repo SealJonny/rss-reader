@@ -30,6 +30,10 @@ export function parseNewsItem(item: Element, feedId: number): NewsItem {
   const title = item.querySelector("title")?.textContent || "";
   const source = item.querySelector("source")?.getAttribute("url") || null;
   const pubDate = item.querySelector("pubDate")?.textContent || null;
+  let pubDateInMs: number | null = null;
+  if (pubDate) {
+    pubDateInMs = new Date(pubDate).getTime() || null;
+  }
 
   const descriptionXml = item.querySelector("description");
   const description = parseHtmlToText(descriptionXml?.textContent) ?? descriptionXml?.textContent ?? "";
@@ -42,7 +46,7 @@ export function parseNewsItem(item: Element, feedId: number): NewsItem {
     hash: "",
     isFavorite: false,
     source: source,
-    pubDate: pubDate,
+    pubDate: pubDateInMs,
     isProcessed: false,
     rssFeedId: feedId
   };

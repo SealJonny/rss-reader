@@ -2,28 +2,26 @@ import blessed from 'more-blessed';
 import { showStartAnimation } from './screens/start-animation';
 import { showRssFeedScreen } from './screens/rss-feed-screen';
 import { showMainScreen, MainMenuSelection } from './screens/main-screen';
-import helpBox, { createHelpBox } from './components/help-box';
-import { createConfirmBox, createErrorBox, createNotificationBox } from './utils/ui-utils';
+import helpBox from './components/help-box';
+import { createConfirmBox } from './utils/ui-utils';
 import db from '../../database/database';
 import { Category, SystemCategory } from '../../interfaces/category';
-import { showEditFeedsScreen } from './screens/edit-feeds-screen';
 import insertJob from '../../database/jobs/insert-job';
 import categoriseJob from '../../database/jobs/categorise-job';
 import { AbortError, JobAlreadyRunning } from '../../errors/general';
-import { showEditCategoriesScreen } from './screens/edit-categories-screen';
-import notificationBox, { NotificationBox } from './components/notification';
+import notificationBox from './components/notification';
+import { EntityUpdateError } from '../../errors/database';
+import { showEditCategoriesScreen } from './screens/edit-screens/categories/category-screen';
+import { showEditFeedsScreen } from './screens/edit-screens/feeds/feeds-screen';
 
 
 export async function syncDatabase(screen: blessed.Widgets.Screen): Promise<void> {
   if (insertJob.isActive() || categoriseJob.isActive()) {
-    const box = createErrorBox(screen, "Die Synchronisation läuft bereits   ");
-    await new Promise<void>(resolve => {
-      setTimeout(() => {
-        box.destroy()
-        screen.render();
-        resolve();
-      }, 3000);
-    });
+    notificationBox.addNotifcation({
+      message: "Die Synchronisation läuft bereits   ",
+      durationInMs: 3000,
+      isError: true
+    })
     return;
   }
 
@@ -34,12 +32,13 @@ export async function syncDatabase(screen: blessed.Widgets.Screen): Promise<void
     box.destroy();
   } catch (error) {
     if (error instanceof JobAlreadyRunning) {
-      const box = createErrorBox(screen, "Die Synchronisation läuft bereits   ");
-      setTimeout(() => {
-        box.destroy()
-        screen.render();
-      }, 3000);
+      notificationBox.addNotifcation({message: "Die Synchronisation läuft bereits   ", durationInMs: 3000, isError: true});
     }
+
+    if (error instanceof EntityUpdateError) {
+      notificationBox.addNotifcation({message: "Das Laden der News ist fehlgeschlagen   ", durationInMs: 3000, isError: true});
+    }
+
     if (error instanceof AbortError) {
       throw error;
     }
@@ -59,8 +58,6 @@ export async function syncDatabase(screen: blessed.Widgets.Screen): Promise<void
     }
   });
 }
-
-
 
 /**
  * Hauptfunktion für die UI-Steuerung
@@ -91,6 +88,8 @@ export async function main() {
       // Nach 3 Sekunden wird automatisch quitPending zurückgesetzt
       setTimeout(() => {
         quitPending = false;
+        confirmBox.destroy();
+        screen.render();
       }, 3000);
     } else {
       insertJob.cancel();
@@ -99,7 +98,9 @@ export async function main() {
     }
   });
 
+  notificationBox.pause();
   await syncDatabase(screen);
+  notificationBox.continue();
 
   let categories: Category[] = [];
 
@@ -108,11 +109,12 @@ export async function main() {
     try {
       categories = await db.categories.all();
     } catch(error) {
-      createErrorBox(screen, `${error}`);
+      notificationBox.addNotifcation({
+        message: "Fehler: Die Kategorien konnten nicht geladen werden",
+        durationInMs: 3000,
+        isError: true
+      });
     }
-
-    // Hilfsbox anzeigen und Benutzerauswahl vom Hauptscreen holen
-    //const helpBox = createHelpBox(screen, "main-screen");
 
     helpBox.setView("main-screen");
     const menuChoice = await showMainScreen(screen, categories);

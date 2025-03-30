@@ -1,7 +1,7 @@
 import blessed from 'more-blessed';
 import open from 'open';
 import { NewsItem } from "../../../interfaces/news-item";
-import { createErrorBox, createNotificationBox } from "../utils/ui-utils";
+import { createNotificationBox } from "../utils/ui-utils";
 import { colors } from '../themes/default-theme';
 import { getScreenWidth, formatTerminalText, countDigits } from '../utils/feed-utils';
 import { Category, isSystemCategory, SystemCategory } from '../../../interfaces/category';
@@ -40,7 +40,9 @@ async function showNewsItem(
   content += `{bold}{${colors.primary}-fg}${formatTerminalText("📰 ", item.title, getScreenWidth(screen))}{/${colors.primary}-fg}{/bold}\n\n`;
 
   // Datum in Sekundärfarbe
-  content += `{${colors.secondary}-fg}📅 ${item.pubDate}{/${colors.secondary}-fg}\n\n`;
+  if (item.pubDate) {
+    content += `{${colors.secondary}-fg}📅 ${new Date(item.pubDate).toLocaleString()}{/${colors.secondary}-fg}\n\n`;
+  }
 
   // Beschreibung mit Einrückung für bessere Lesbarkeit
   content += `{white-fg}${formatTerminalText("📖 ", item.description, getScreenWidth(screen))}{/white-fg}\n\n`;

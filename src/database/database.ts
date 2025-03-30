@@ -61,7 +61,7 @@ export class Db {
         isFavorite INTEGER NOT NULL,
         isProcessed INTEGER NOT NULL,
         source TEXT,
-        pubDate TEXT,
+        pubDate INTEGER,
         rssFeedId INTEGER,
         FOREIGN KEY (rssFeedId) REFERENCES rss_feeds(id) ON DELETE CASCADE
       );

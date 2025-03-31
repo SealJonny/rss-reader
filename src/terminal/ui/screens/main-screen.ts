@@ -182,6 +182,8 @@ export async function showMainScreen(screen: blessed.Widgets.Screen, categories:
      */
     function showCategoryMenu() {
       // Define category items
+      helpBox.resetView();
+      helpBox.setView("nested-list");
       const categoryItems: ListItem[] = [
         { text: 'Categorized Feeds', isHeading: true }
       ];

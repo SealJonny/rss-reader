@@ -116,7 +116,7 @@ Das Hauptmenü ist der zentrale Ausgangspunkt zur Navigation durch die Anwendung
 
 Sie können die entsprechenden Ziffern als Tastenkürzel verwenden oder mit den Pfeiltasten navigieren und mit `Enter` auswählen.
 
-![Hauptmenü](/images/main-menu.png) *(Platzhalter für Screenshot)*
+![Hauptmenü](/images/main-menu.png)
 
 ### RSS-Feed-Anzeige
 
@@ -131,7 +131,7 @@ Die Feed-Ansicht zeigt die Nachrichtenartikel aus der ausgewählten Kategorie od
 
 Am oberen Rand sehen Sie eine Navigationsleiste mit der aktuellen Position im Feed (z.B. "1/25 - Allgemein").
 
-![RSS-Feed-Ansicht](/images/rss-feed-view.png) *(Platzhalter für Screenshot)*
+![RSS-Feed-Ansicht](/images/rss-feed-view.png)
 
 ### Feed-Inhalte navigieren
 

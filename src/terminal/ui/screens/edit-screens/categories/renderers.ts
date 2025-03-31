@@ -68,18 +68,10 @@ function renderDetails(
   // Show title as header
   content += `{bold}{${colors.secondary}-fg}${category.name}{/${colors.secondary}-fg}{/bold}\n\n`;
 
-  // // Show feed details
-  // content += `{bold}{${colors.primary}-fg}URL:{/${colors.primary}-fg}{/bold} \n${category.link}\n\n`;
+  // Show feed details
+  content += `{bold}{${colors.primary}-fg}ID:{/${colors.primary}-fg}{/bold} \n${category.id}\n\n`;
   // content += `{bold}{${colors.primary}-fg}Description:{/${colors.primary}-fg}{/bold} \n${category.description}\n\n`;
-  //
-  // if (category.language) {
-  //   content += `{bold}{${colors.primary}-fg}Language:{/${colors.primary}-fg}{/bold} \n${category.language}\n\n`;
-  // }
-  //
-  // if (category.lastBuildDate) {
-  //   const date = new Date(category.lastBuildDate);
-  //   content += `{bold}{${colors.primary}-fg}Last Build Date:{/${colors.primary}-fg}{/bold} \n${date.toLocaleDateString()} ${date.toLocaleTimeString()}\n\n`;
-  // }
+
 
   detailsBox.setContent(content);
 }

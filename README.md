@@ -2,7 +2,7 @@
 
 Ein Terminal-basierter RSS-Feed-Reader mit KI-gestützter Kategorisierung, der es ermöglicht, Nachrichten aus verschiedenen Quellen zu lesen, zu organisieren und zu verwalten.
 
-![RSS-Reader Screenshot (Platzhalter)](#)
+![RSS-Reader Screenshot (Platzhalter)](/images/main-menu.png)
 
 ## Funktionen
 

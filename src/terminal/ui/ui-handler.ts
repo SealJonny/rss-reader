@@ -14,14 +14,19 @@ import { showEditCategoriesScreen } from './screens/edit-screens/categories/cate
 import { showEditFeedsScreen } from './screens/edit-screens/feeds/feeds-screen';
 import { showRssFeedScreen } from './screens/feed-screen/rss-feed-screen';
 
-
+/**
+ * Synchronizes the database by fetching all RSS feeds and categorizing news items
+ *
+ * @param screen The blessed screen instance
+ * @returns A Promise that resolves when the synchronization has started
+ */
 export async function syncDatabase(screen: blessed.Widgets.Screen, showAnimation: boolean = true): Promise<void> {
   if (insertJob.isActive() || categoriseJob.isActive()) {
     notificationBox.addNotifcation({
       message: "Die Synchronisation läuft bereits   ",
       durationInMs: 3000,
       isError: true
-    })
+    });
     return;
   }
 
@@ -65,13 +70,13 @@ export async function syncDatabase(screen: blessed.Widgets.Screen, showAnimation
 }
 
 /**
- * Hauptfunktion für die UI-Steuerung
+ * Main function for UI control
+ * Initializes the database, sets up the UI components and handles the main program loop
  */
 export async function main() {
   await db.initialize();
   await db.news.deleteAllOlderThanOneDay();
 
-  // Erstelle Hauptbildschirm
   const screen = blessed.screen({
       smartCSR: true,
       fullUnicode: true,
@@ -81,16 +86,13 @@ export async function main() {
   helpBox.initialize(screen);
   notificationBox.initialize(screen);
 
-  // Zustand für Quit-Bestätigung
   let quitPending = false;
 
-  // Beenden der Anwendung
   screen.key(['C-c'], () => { // 'escape',
     if (!quitPending) {
       quitPending = true;
-      // Bestätigungsnachricht anzeigen
+
       const confirmBox = createConfirmBox(screen, 'Press ESC oder Ctrl+C um zu beenden');
-      // Nach 3 Sekunden wird automatisch quitPending zurückgesetzt
       setTimeout(() => {
         quitPending = false;
         confirmBox.destroy();
@@ -109,7 +111,7 @@ export async function main() {
 
   let categories: Category[] = [];
 
-  // Hauptprogrammschleife
+  // Main program loop
   while(true) {
     try {
       categories = await db.categories.all();
@@ -124,10 +126,9 @@ export async function main() {
     helpBox.setView("main-screen");
     const menuChoice = await showMainScreen(screen, categories);
     helpBox.resetView();
-    //helpBox.destroy();
     screen.render();
 
-    // Benutzeraktion verarbeiten
+    // Process user action
     switch(menuChoice) {
       case MainMenuSelection.GENERAL_FEED:
         await showFeed(screen, SystemCategory.GENERAL);
@@ -150,7 +151,7 @@ export async function main() {
         break;
 
       default:
-        let selectedCategory = categories.find(c => c.id === menuChoice)
+        let selectedCategory = categories.find(c => c.id === menuChoice);
         if (selectedCategory) {
           await showFeed(screen, selectedCategory);
         }
@@ -160,7 +161,10 @@ export async function main() {
 }
 
 /**
- * Hilfsfunktion für das Anzeigen verschiedener Feed-Typen
+ * Helper function for displaying different feed types
+ *
+ * @param screen The blessed screen instance
+ * @param category Category or system category to display
  */
 async function showFeed(screen: blessed.Widgets.Screen, category: Category | SystemCategory) {
   try {

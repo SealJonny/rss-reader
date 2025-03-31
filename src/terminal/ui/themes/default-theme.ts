@@ -1,5 +1,8 @@
-// Theme-Datei für konsistente Farben und Stile
+// Theme file for consistent colors and styles
 
+/**
+ * Color palette used throughout the application
+ */
 export const colors = {
   primary: '#B2A4FF',
   secondary: '#FFB4B4',
@@ -14,8 +17,11 @@ export const colors = {
   background: 'black',
 }
 
+/**
+ * Reusable styles for UI elements
+ */
 export const styles = {
-  // Allgemeine Stile für verschiedene UI-Elemente
+  // General styles for various UI elements
   box: {
     border: {
       fg: colors.secondary
@@ -34,11 +40,22 @@ export const styles = {
   }
 }
 
-// Format-Funktion zum Erstellen von Style-Tags für blessed
+/**
+ * Formats text as a heading with accent color and bold style
+ * 
+ * @param text Text to format as heading
+ * @returns Blessed-compatible formatted string with tags
+ */
 export function formatHeading(text: string): string {
   return `{${colors.accent}-fg}{bold}${text}{/bold}{/${colors.accent}-fg}`;
 }
 
+/**
+ * Formats text as selected with primary color
+ * 
+ * @param text Text to format as selected
+ * @returns Blessed-compatible formatted string with tags
+ */
 export function formatSelected(text: string): string {
   return `{${colors.primary}-fg}${text}{/${colors.primary}-fg}`;
 }

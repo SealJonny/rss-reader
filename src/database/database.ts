@@ -6,12 +6,19 @@ import { NewsCategories } from "./tables/news-categories";
 import { RssFeeds } from "./tables/rss-feeds";
 import { DatabaseConnectionError } from "../errors/database";
 
+/**
+ * Main database class that manages all database tables and connections
+ */
 export class Db {
   public categories!: Categories;
   public news!: News;
   public join!: NewsCategories;
   public rssFeeds!: RssFeeds;
 
+  /**
+   * Initializes the database connection and all table managers
+   * @throws {DatabaseConnectionError} If connection to database fails
+   */
   public async initialize(): Promise<void> {
     let db: Database;
     try {
@@ -31,6 +38,10 @@ export class Db {
     await this.initTables(db);
   }
 
+  /**
+   * Creates database tables if they don't exist
+   * @param db Database connection
+   */
   private async initTables(db: Database): Promise<void> {
     const categories = `
       CREATE TABLE IF NOT EXISTS categories (

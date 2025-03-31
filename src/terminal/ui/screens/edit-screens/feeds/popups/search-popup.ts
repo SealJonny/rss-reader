@@ -12,6 +12,17 @@ import notificationBox, { Notification } from "../../../../components/notificati
 import { FeedListState } from "../feeds-screen";
 import { renderFeedList } from "../renderers";
 
+/**
+ * Shows a search popup for finding RSS feeds using AI
+ *
+ * @param screen The blessed screen instance
+ * @param feeds Array of existing RSS feeds
+ * @param state Current state of the feed list UI
+ * @param feedListBox The feed list UI element
+ * @param detailsBox Optional details box element
+ * @param separator Optional separator line element
+ * @returns Promise that resolves when the popup is closed
+ */
 export async function showSearchGptScreen(
   screen: blessed.Widgets.Screen,
   feeds: RssFeed[],
@@ -23,6 +34,7 @@ export async function showSearchGptScreen(
 
   helpBox.resetView();
 
+  // Create form for entering search prompt
   const form = blessed.form<{prompt: string}>({
     parent: screen,
     keys: false,
@@ -45,6 +57,7 @@ export async function showSearchGptScreen(
     label: "ChatGPT Suche"
   });
 
+  // Create the prompt input field
   const promptInput = blessed.textarea({
     parent: form,
     name: 'prompt',
@@ -88,8 +101,10 @@ export async function showSearchGptScreen(
 
   screen.render();
 
+  // Create abort controller for request cancellation
   const abortController = new AbortController();
 
+  // Track invalid links to avoid suggesting them again
   const invalidLinks: string[] = [];
 
   await new Promise<void>(resolve => {
@@ -142,6 +157,7 @@ export async function showSearchGptScreen(
           isError: true
         };
 
+        // Handle various error types
         if (error instanceof AiRequestError || error instanceof AiInvalidResponseError) {
           notification.message = "Fehler: Anfrage an ChatGPT ist fehlgeschlagen.  ";
           notificationBox.addNotifcation(notification);
@@ -180,6 +196,7 @@ export async function showSearchGptScreen(
       }
     });
 
+    // Handle cancellation
     form.on('reset', () => {
       abortController.abort();
       form.destroy();

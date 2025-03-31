@@ -1,14 +1,26 @@
 import blessed from 'more-blessed';
 import { colors, styles, formatHeading } from '../themes/default-theme';
 
+/**
+ * Interface representing an item in a selectable list
+ */
 export interface ListItem {
+  /** Text content of the list item */
   text: string;
+  /** Whether this item is a non-selectable heading */
   isHeading?: boolean;
+  /** Optional key for identifying the item */
   key?: string | number;
 }
 
 /**
- * Erstellt eine wiederverwendbare selektierbare Liste
+ * Creates a reusable selectable list component
+ *
+ * @param screen The blessed screen instance
+ * @param parent Parent node to attach the list to
+ * @param items Array of list items to display
+ * @param options Configuration options for positioning and styling
+ * @returns A blessed list element
  */
 export function createSelectableList(
   screen: blessed.Widgets.Screen,
@@ -24,17 +36,16 @@ export function createSelectableList(
   }
 ): blessed.Widgets.ListElement {
 
-  // Formatiere die Items entsprechend (Headings und normale Einträge)
+  // Format items according to their type (headings and normal entries)
   const formattedItems = items.map((item, index) => {
     if (item.isHeading) {
       return formatHeading(item.text);
     }
-    // Das erste nicht-Heading-Element bekommt den Auswahlcursor
+    // First non-heading element gets the selection cursor
     const isSelected = !items.slice(0, index).some(i => !i.isHeading);
     return isSelected ? `❯ ${item.text}` : `  ${item.text}`;
   });
 
-  // Erstelle die Liste
   const list = blessed.list({
     parent: parent,
     top: options.top,
@@ -55,18 +66,20 @@ export function createSelectableList(
     padding: options.padding,
   });
 
-  // Funktion um zu prüfen, ob ein Eintrag eine Überschrift ist
+  /**
+   * Check if an item at specified index is a heading
+   * @param index Index to check
+   * @returns True if the item is a heading
+   */
   function isHeadingItem(index: number): boolean {
     return items[index]?.isHeading || false;
   }
 
-  // Tastaturnavigation einrichten
+  // Setup keyboard navigation
   list.key(['up', 'k'], () => {
-    // Greife auf den aktuellen Index zu
     const currentIndex = (list as any).selected as number;
     let newIndex = currentIndex === 0 ? items.length - 1 : currentIndex - 1;
 
-    // Solange newIndex auf eine Überschrift zeigt, überspringe diesen Eintrag
     while (isHeadingItem(newIndex)) {
       newIndex = newIndex === 0 ? items.length - 1 : newIndex - 1;
     }
@@ -77,11 +90,9 @@ export function createSelectableList(
   });
 
   list.key(['down', 'j'], () => {
-    // Greife auf den aktuellen Index zu
     const currentIndex = (list as any).selected as number;
     let newIndex = currentIndex === items.length - 1 ? 0 : currentIndex + 1;
 
-    // Solange newIndex auf eine Überschrift zeigt, überspringe diesen Eintrag
     while (isHeadingItem(newIndex)) {
       newIndex = newIndex === items.length - 1 ? 0 : newIndex + 1;
     }
@@ -91,7 +102,9 @@ export function createSelectableList(
     screen.render();
   });
 
-  // Aktualisiere die Anzeige der Liste mit dem Cursor
+  /**
+   * Update the display of list items with cursor indicator
+   */
   function updateListItems() {
     const selectedIndex = (list as any).selected as number;
     list.setItems(
@@ -105,7 +118,7 @@ export function createSelectableList(
     screen.render();
   }
 
-  // Initialen Zustand setzen
+  // Set initial state
   const firstSelectableIndex = items.findIndex(item => !item.isHeading);
   if (firstSelectableIndex >= 0) {
     list.select(firstSelectableIndex);

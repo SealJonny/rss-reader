@@ -13,8 +13,8 @@ import { openai } from './common';
  *          The JSON format has keys from "1" to "numItems" and values are arrays of assigned categories.
  *          Example: { "1": ["Politics", "Economy"], "2": [], "3": ["Sports"] }
  *
- * @throws {AiRequestError} If response from gpt is empty
- * @throws {AiInvalidResponseError} If response
+ * @throws {AiRequestError} If response from GPT is empty
+ * @throws {AiInvalidResponseError} If response cannot be parsed
  *
  * @description
  * This function uses OpenAI's API to analyze news items and assign appropriate categories.
@@ -69,7 +69,7 @@ export async function categoriseNewsItems(newsItems: NewsItem[], categories: Cat
 
   const output = completion.choices[0].message.content;
 
-  // Antwort auslesen und parsen
+  // Parse the response
   if (!output) {
     throw new AiRequestError("Could not categorise the NewsItems!");
   }
@@ -77,7 +77,7 @@ export async function categoriseNewsItems(newsItems: NewsItem[], categories: Cat
   // ToDo: Error Handling
   let json = JSON.parse(output);
   if (!json) {
-    throw new AiInvalidResponseError("Failed to parse response from gpt");
+    throw new AiInvalidResponseError("Failed to parse response from GPT");
   }
   const result: Record<number, string[]> = Object.fromEntries(
     Object.entries(json).map(([key, value]) => [Number(key), value as string[]])

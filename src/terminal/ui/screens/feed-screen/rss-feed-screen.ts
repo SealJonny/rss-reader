@@ -11,7 +11,14 @@ import helpBox from '../../components/help-box';
 import { showSummarizePopup } from './popups/summarize-popup';
 
 /**
- * Zeigt die Details eines Nachrichtenelements an
+ * Displays the details of a news item in the feed box
+ *
+ * @param item The news item to display
+ * @param index Current index of the item in the list
+ * @param total Total number of news items
+ * @param feedBox The box element where content is displayed
+ * @param screen The blessed screen instance
+ * @returns Promise that resolves when the display is complete
  */
 async function showNewsItem(
   item: NewsItem,
@@ -20,47 +27,43 @@ async function showNewsItem(
   feedBox: blessed.Widgets.BoxElement,
   screen: blessed.Widgets.Screen
 ): Promise<void> {
-  // Erst Inhalt leeren und dann rendern
+  // Clear content and render before adding new content
   feedBox.setContent('');
   screen.render();
 
-
-  // Neuen Inhalt erstellen und setzen
   let content = '';
-
-  // Todo: Prüfen ob das geht
-
   let titleLength = countDigits(index + 1) + countDigits(total) + feedBox.options._feedTitle.length + 9; // 1 Slash / 1 "-" / 2 " " / 5 Padding
   let isFavorite = item.isFavorite ? `${' '.repeat(getScreenWidth(screen) - (titleLength))}{${colors.green}-fg}✻ {/${colors.green}-fg}` : '';
-  // Navigations-Header mit Feed-Titel
+
+  // Navigation header with feed title
   content += `{bold}{${colors.accent}-fg}${index + 1}/${total} - ${feedBox.options._feedTitle || ''}${isFavorite}{/${colors.accent}-fg}{/bold}\n`;
 
-  // Horizontale Linie
+  // Horizontal line
   content += `{${colors.secondary}-fg}${'─'.repeat(getScreenWidth(screen) - 2)}{/${colors.secondary}-fg}\n\n`;
 
-  // Titel hervorheben
+  // Highlight title
   content += `{bold}{${colors.primary}-fg}${formatTerminalText("📰 ", item.title, getScreenWidth(screen))}{/${colors.primary}-fg}{/bold}\n\n`;
 
-  // Datum in Sekundärfarbe
+  // Date
   if (item.pubDate) {
     content += `{${colors.secondary}-fg}📅 ${new Date(item.pubDate).toLocaleString()}{/${colors.secondary}-fg}\n\n`;
   }
 
-  // Beschreibung mit Einrückung für bessere Lesbarkeit
+  // Description
   content += `{white-fg}${formatTerminalText("📖 ", item.description, getScreenWidth(screen))}{/white-fg}\n\n`;
 
-  // Kategorie
+  // Categories
   const categoriesResult = await db.join.getCategoriesForNews(item.id!);
   const categories = categoriesResult ? categoriesResult.map((c: Category) => c.name).join(', ') : '';
   if (categories.length > 0) {
-  content += `{${colors.accent}-fg}${formatTerminalText("📂 ", categories, getScreenWidth(screen))}{/${colors.accent}-fg}\n\n`
+    content += `{${colors.accent}-fg}${formatTerminalText("📂 ", categories, getScreenWidth(screen))}{/${colors.accent}-fg}\n\n`;
   }
 
   // Link
   const url = item.link.replace(/^(?:https?:\/\/)?([^\/]+\/).*$/, '$1');
   content += `{${colors.text.muted}-fg}${formatTerminalText("🔗 ", url, getScreenWidth(screen))}{/${colors.text.muted}-fg}\n\n`;
 
-  // Quellenangabe wenn vorhanden
+  // Source if available
   content += `{${colors.text.muted}-fg}${formatTerminalText("📝 ", item.source!, getScreenWidth(screen))}{/${colors.text.muted}-fg}\n`;
 
   feedBox.setContent(content);
@@ -68,10 +71,11 @@ async function showNewsItem(
 }
 
 /**
- * Zeigt den RSS-Feed-Screen an und gibt die Feed-Box zurück
- * @param screen Der Blessed-Screen
- * @param feedType Der Typ des Feeds, der angezeigt werden soll
- * @returns Die erstellte FeedBox
+ * Displays the RSS feed screen with news items from a specific category
+ *
+ * @param screen The blessed screen instance
+ * @param category The category or system category to display news for
+ * @returns Promise resolving to the created feed box element
  */
 export async function showRssFeedScreen(
   screen: blessed.Widgets.Screen,
@@ -80,7 +84,6 @@ export async function showRssFeedScreen(
   helpBox.resetView();
   helpBox.setView("rss-feed");
   let currentIndex: number = 0;
-
   let categoryName = "";
 
   let newsItems: NewsItem[] = [];
@@ -106,7 +109,7 @@ export async function showRssFeedScreen(
           break;
       }
     } else {
-      newsItems = await db.join.getNewsForCategory((category as Category).id!); // Todo: Error Handling
+      newsItems = await db.join.getNewsForCategory((category as Category).id!); // Todo: Add error handling
       newsItems = newsItems.filter(n => {
         if (!n.isFavorite) {
           return n;
@@ -122,7 +125,7 @@ export async function showRssFeedScreen(
     notificationBox.addNotifcation({message: `Fehler beim Abrufen der Nachrichten: ${error}`, durationInMs: 3000, isError: true});
   }
 
-  // Container für den Feed erstellen
+  // Create container for the feed
   const feedBox = blessed.box({
     top: 0,
     left: 0,
@@ -136,7 +139,7 @@ export async function showRssFeedScreen(
     mouse: false,
     content: `Lade ${categoryName}...${' '.repeat(getScreenWidth(screen) - (8 + categoryName.length))}`,
     tags: true,
-    // Speichere den Feed-Titel als private Option
+    // Store feed title as private option
     _feedTitle: categoryName
   });
 
@@ -152,9 +155,9 @@ export async function showRssFeedScreen(
   if (newsItems.length > 0) {
     await showNewsItem(newsItems[currentIndex], currentIndex, newsItems.length, feedBox, screen);
 
-    // Tastatur-Ereignishandler einrichten
-    // Favorisieren-Funktion
+    // Set up keyboard event handlers
 
+    // Favorite functionality
     let favoriseNotification: blessed.Widgets.BoxElement;
     let creationTime = Date.now();
 
@@ -183,8 +186,7 @@ export async function showRssFeedScreen(
             notificationBox.pause();
             favoriseNotification = createNotificationBox(screen, ' ✻  Aktueller Artikel wurde aus den Favoriten entfernt! ✻');
           }
-          //screen.render();
-          // Nach kurzer Verzögerung wieder den Artikel anzeigen
+
           setTimeout(async () => {
             if (currentIndex < newsItems.length) {
 
@@ -200,17 +202,17 @@ export async function showRssFeedScreen(
             }
           }, 2500);
         }
-
-      })
-
+      });
     });
 
+    // Open article in browser
     feedBox.key(['o'], () => {
       let test = open(newsItems[currentIndex].link).catch((err) => {
         notificationBox.addNotifcation({message: `Fehler beim Öffnen des Links: ${err}`, durationInMs: 3000, isError: true});
       });
     });
 
+    // Show summary popup
     feedBox.key(['s'], async () => {
       feedBox.hide();
       screen.render();
@@ -220,20 +222,19 @@ export async function showRssFeedScreen(
       helpBox.setView("rss-feed");
     })
 
-    // Navigation: Nächster Artikel
+    // Navigation: Next article
     feedBox.key(['down', 'j'],async () => {
       currentIndex = (currentIndex + 1) % newsItems.length;
       await showNewsItem(newsItems[currentIndex], currentIndex, newsItems.length, feedBox, screen);
     });
 
-    // Navigation: Vorheriger Artikel
+    // Navigation: Previous article
     feedBox.key(['up', 'k'],async () => {
       currentIndex = currentIndex - 1 >= 0 ? currentIndex - 1 : newsItems.length - 1;
       await showNewsItem(newsItems[currentIndex], currentIndex, newsItems.length, feedBox, screen);
     });
   }
 
-  // Warten, bis der Benutzer zurück zum Hauptmenü möchte
   await new Promise<void>((resolve) => {
     feedBox.key(['q'], () => {
       resolve();

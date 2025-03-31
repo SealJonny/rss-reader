@@ -1,6 +1,13 @@
-import { JSDOM } from "jsdom"
+import { JSDOM } from "jsdom";
 import { NewsItem } from "../interfaces/news-item";
 
+/**
+ * Parses HTML content to plain text by removing unwanted elements
+ * and extracting text from the DOM
+ *
+ * @param data HTML content as string
+ * @returns Plain text content or null if parsing fails
+ */
 export function parseHtmlToText(data: string | null | undefined): string | null {
   if (!data) return null;
 
@@ -10,6 +17,11 @@ export function parseHtmlToText(data: string | null | undefined): string | null 
 
   let html = dom.window.document.body || dom.window.document;
 
+  /**
+   * Recursively extracts text from DOM nodes
+   * @param node DOM node to extract text from
+   * @returns Extracted text content
+   */
   function extractText(node: Node): string {
     if (node.nodeType === 3) { // Text-Node
       return node.textContent?.trim() ?? "";
@@ -27,7 +39,13 @@ export function parseHtmlToText(data: string | null | undefined): string | null 
   return result.length > 0 ? result : null;
 }
 
-
+/**
+ * Parses an RSS item element into a NewsItem object
+ *
+ * @param item DOM element representing an RSS item
+ * @param feedId ID of the RSS feed containing this item
+ * @returns NewsItem object with parsed data
+ */
 export function parseNewsItem(item: Element, feedId: number): NewsItem {
   const link = item.querySelector("link")?.textContent || "";
   const title = item.querySelector("title")?.textContent || "";

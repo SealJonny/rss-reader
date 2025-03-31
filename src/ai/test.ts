@@ -9,6 +9,14 @@ interface FeedItem {
   description: string;
 }
 
+/**
+ * Test function for categorizing news items using OpenAI's API
+ * 
+ * @param newsItems List of news items to categorize
+ * @param kategorien Categories to use for categorization
+ * @param numItems Maximum number of items to process
+ * @returns JSON string with categorization results
+ */
 async function kategorisiereNewsItems(newsItems: NewsItem[], kategorien: string[], numItems: number = 10): Promise<string> {
   const prompt = `Du erhältst ${numItems} RSS-Feed-News-Items, jedes bestehend aus einem Titel und einer Beschreibung.
 Deine Aufgabe ist es, jedem Item passende Kategorie(n) aus dieser Liste zuzuweisen: ${kategorien.join(", ")}.
@@ -46,18 +54,19 @@ JSON-Objekt mit Schlüsseln "1" bis "${numItems}" und Arrays der zugewiesenen Ka
     const antwortText = completion.choices[0].message?.content || "{}";
     return antwortText;
   } catch (error) {
-    console.error("Fehler bei der OpenAI-API-Anfrage:", error);
+    console.error("Error in OpenAI API request:", error);
     throw error;
   }
 }
 
+// Self-executing function for testing the categorization
 (async () => {
   let newsItems: NewsItem[] = [];
   try {
     //newsItems = await fetchRss("https://news.google.com/rss?hl=de&gl=DE&ceid=DE:de");
-    console.log(`${newsItems.length} News-Items abgerufen.`);
+    console.log(`${newsItems.length} news items retrieved.`);
   } catch (error) {
-    console.error("Fehler beim Abrufen des RSS-Feeds:", error);
+    console.error("Error fetching RSS feed:", error);
     return;
   }
 
@@ -67,8 +76,8 @@ JSON-Objekt mit Schlüsseln "1" bis "${numItems}" und Arrays der zugewiesenen Ka
 
   try {
     const zugewieseneKategorien = await kategorisiereNewsItems(firstTenNewsItems, kategorien, numItems);
-    console.log("Zugewiesene Kategorien:", console.log("Zugewiesene Kategorien:", zugewieseneKategorien));
+    console.log("Assigned categories:", zugewieseneKategorien);
   } catch (error) {
-    console.error("Fehler beim Kategorisieren der News-Items:", error);
+    console.error("Error categorizing news items:", error);
   }
 })();

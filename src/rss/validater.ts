@@ -4,13 +4,12 @@ import { RssFeedNotFoundError, RssFeedInvalidError } from "../errors/rss-feed";
 import { RssFeed } from "../interfaces/rss-feed";
 
 /**
- * Checks if the link points to a valid rss feed
+ * Validates and retrieves metadata from an RSS feed URL
  *
- * @param link Rss feed link
- * @returns Valid RssFeed object
- * @throws {RssFeedNotFoundError} if fetch returned status NOT_FOUND(404)
- * @throws {RssFeedInvalidError} if the link could be resolved but does not point to a rss feed
- *
+ * @param link URL to the RSS feed to validate
+ * @returns RssFeed object with metadata from the feed
+ * @throws {RssFeedNotFoundError} If the URL returns a 404 status
+ * @throws {RssFeedInvalidError} If the URL resolves but does not contain a valid RSS feed
  */
 export async function validateRssFeed(link: string): Promise<RssFeed> {
   const result = await fetch(link);
@@ -23,9 +22,9 @@ export async function validateRssFeed(link: string): Promise<RssFeed> {
     throw new RssFeedInvalidError(`Fetching the rss feed failed with status code ${result.status}`, link);
   }
 
-  // Check if content type matches any of xml related content type
+  // Check if content type matches any of XML related content type
   let contentType = result.headers.get("Content-Type")?.toLowerCase() || "";
-  const semicolonIndex = contentType.indexOf(";")
+  const semicolonIndex = contentType.indexOf(";");
   if (semicolonIndex !== -1) {
     contentType = contentType.slice(0, semicolonIndex);
   }
@@ -34,7 +33,7 @@ export async function validateRssFeed(link: string): Promise<RssFeed> {
       throw new RssFeedInvalidError(`Content-Type ${contentType} does not match 'application/xml', 'text/xml', 'application/rss+xml'`, link);
   }
 
-  // Parse xml data and check if the required channel tag is present
+  // Parse XML data and check if the required channel tag is present
   const content = await result.text();
   const dom = new JSDOM(content, {contentType: "application/rss+xml"});
   const channel = dom.window.document.querySelector("channel");
@@ -63,7 +62,7 @@ export async function validateRssFeed(link: string): Promise<RssFeed> {
     description: description,
     language: language,
     lastBuildDate: lastBuildDateInMs
-  }
+  };
 
   return rssFeed;
 }

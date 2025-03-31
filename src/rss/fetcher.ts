@@ -7,11 +7,13 @@ import { run } from "node:test";
 
 
 /**
+ * Fetches and parses news items from an RSS feed
  *
- * @param {RssFeed} feed Rss feed
- * @returns {Promise<NewsItem[] | null>} Fetched news from RSS feed
- * @throws {RssFeedInvalidError} If feed has no id
- * @throws {RssFeedNotFoundError} If the RSS link could not be found
+ * @param feed RSS feed to fetch from
+ * @param signal AbortSignal to cancel the request
+ * @returns Array of news items extracted from the feed
+ * @throws {RssFeedInvalidError} If feed has no ID or the response is invalid
+ * @throws {RssFeedNotFoundError} If the RSS link could not be found (404)
  * @throws {RssFeedError} If fetching the RSS page failed for any other reason
  */
 export async function fetchRss(feed: RssFeed, signal: AbortSignal): Promise<NewsItem[]> {
@@ -43,12 +45,19 @@ export async function fetchRss(feed: RssFeed, signal: AbortSignal): Promise<News
     feed.lastBuildDate = time;
   }
 
-  const items = Array.from(channel.querySelectorAll("item"))
+  const items = Array.from(channel.querySelectorAll("item"));
   let news = items.map(item => parseNewsItem(item, feed.id!));
 
   return news;
 }
 
+/**
+ * Fetches and parses the content of a webpage
+ *
+ * @param news URL of the webpage to fetch
+ * @returns Parsed plain text from the webpage or null if parsing fails
+ * @throws {Error} If the webpage could not be found, or if the content type is not HTML
+ */
 export async function fetchWebpage(news: NewsItem): Promise<string | null> {
   let result = await fetch(news.link, {redirect: "manual"});
   if (result.status >= 300 && result.status < 400) {
@@ -66,9 +75,9 @@ export async function fetchWebpage(news: NewsItem): Promise<string | null> {
     throw new Error(`Fetching the webpage failed with status code ${result.status}`);
   }
 
-  // Check if content type matches any of xml related content type
+  // Check if content type matches any of HTML related content type
   let contentType = result.headers.get("Content-Type")?.toLowerCase() || "";
-  const semicolonIndex = contentType.indexOf(";")
+  const semicolonIndex = contentType.indexOf(";");
   if (semicolonIndex !== -1) {
     contentType = contentType.slice(0, semicolonIndex);
   }

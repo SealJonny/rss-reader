@@ -2,7 +2,12 @@ import blessed from 'more-blessed';
 import { colors } from '../themes/default-theme';
 
 /**
- * Zentrale Funktion zum Erstellen einer Bestätigungsbox
+ * Creates a confirmation box at the bottom of the screen
+ * 
+ * @param screen The blessed screen instance
+ * @param message Message to display in the confirmation box
+ * @param timeout Time in seconds after which the box disappears
+ * @returns The created message element
  */
 export function createConfirmBox(screen: blessed.Widgets.Screen, message: string, timeout: number = 3): blessed.Widgets.MessageElement {
   const confirmBox = blessed.message({
@@ -23,7 +28,11 @@ export function createConfirmBox(screen: blessed.Widgets.Screen, message: string
 }
 
 /**
- * Erstellt eine Fehler-Box
+ * Creates an error box at the bottom of the screen
+ * 
+ * @param screen The blessed screen instance
+ * @param errorMessage Error message to display
+ * @returns The created box element
  */
 export function createErrorBox(screen: blessed.Widgets.Screen, errorMessage: string): blessed.Widgets.BoxElement {
   const errorBox = blessed.box({
@@ -45,7 +54,11 @@ export function createErrorBox(screen: blessed.Widgets.Screen, errorMessage: str
 }
 
 /**
- * Erstellt eine Notification-Box
+ * Creates a notification box at the bottom of the screen
+ * 
+ * @param screen The blessed screen instance
+ * @param notification Notification message to display
+ * @returns The created box element
  */
 export function createNotificationBox(screen: blessed.Widgets.Screen, notification: string): blessed.Widgets.BoxElement {
   const notificationBox = blessed.box({
@@ -67,6 +80,13 @@ export function createNotificationBox(screen: blessed.Widgets.Screen, notificati
   return notificationBox;
 }
 
+/**
+ * Removes a box from the screen after a specified timeout
+ * 
+ * @param screen The blessed screen instance
+ * @param box The box element to remove
+ * @param timeout Time in seconds after which the box is removed
+ */
 export function deleteBoxAfter(screen: blessed.Widgets.Screen, box: blessed.Widgets.BoxElement, timeout: number = 3): void {
   setTimeout(() => {
     box.destroy();

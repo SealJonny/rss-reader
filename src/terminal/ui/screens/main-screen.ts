@@ -8,7 +8,8 @@ import { getScreenHeight } from '../utils/feed-utils';
 import categoriseJob from '../../../database/jobs/categorise-job';
 
 /**
- * Hauptmenü-Auswahl
+ * Main menu navigation options enum
+ * Used for identifying which menu option was selected
  */
 export enum MainMenuSelection {
   GENERAL_FEED = -1,
@@ -20,11 +21,15 @@ export enum MainMenuSelection {
 }
 
 /**
- * Zeigt den Hauptbildschirm und gibt die Benutzerauswahl zurück
+ * Displays the main screen and returns the user's selection
+ *
+ * @param screen The blessed screen instance
+ * @param categories List of available categories
+ * @returns Promise resolving to the selected menu option (either a category ID or a MainMenuSelection value)
  */
 export async function showMainScreen(screen: blessed.Widgets.Screen, categories: Category[]): Promise<number> {
   return new Promise<number>((resolve) => {
-    // Erstelle eine Box für den Hauptbildschirm
+    // Create main screen container
     const mainScreenBox = blessed.box({
       top: 0,
       left: 0,
@@ -34,7 +39,7 @@ export async function showMainScreen(screen: blessed.Widgets.Screen, categories:
 
     screen.append(mainScreenBox);
 
-    // Titel
+    // Title
     const titleBox = blessed.box({
       parent: mainScreenBox,
       top: 0,
@@ -56,7 +61,7 @@ export async function showMainScreen(screen: blessed.Widgets.Screen, categories:
 
     titleBox.setContent(`${colorText("✻", hexToRgb(colors.secondary))}  Willkommen in dem RSS Feed Reader!`);
 
-    // Untertitel
+    // Subtitle
     const subtitleBox = blessed.box({
       parent: mainScreenBox,
       top: 4,
@@ -78,7 +83,7 @@ export async function showMainScreen(screen: blessed.Widgets.Screen, categories:
     });
     subSubtitleBox.setContent('Nutze die Hotkeys oder die Pfeiltasten um zu navigieren.');
 
-    // Trennlinie
+    // Divider line
     const topLine = blessed.line({
       parent: mainScreenBox,
       orientation: 'horizontal',
@@ -90,7 +95,7 @@ export async function showMainScreen(screen: blessed.Widgets.Screen, categories:
       }
     });
 
-    // Menü-Items definieren
+    // Define menu items
     const items: ListItem[] = [
       { text: 'Feeds', isHeading: true },
       { text: 'Allgemein (1)', key: MainMenuSelection.GENERAL_FEED },
@@ -109,7 +114,7 @@ export async function showMainScreen(screen: blessed.Widgets.Screen, categories:
       { text: 'Synchronisieren (6)', key: MainMenuSelection.SYNC},
     ];
 
-    // Erstelle die Liste
+    // Create the list
     const list = createSelectableList(screen, mainScreenBox, items, {
       top: 9,
       left: 0,
@@ -119,65 +124,13 @@ export async function showMainScreen(screen: blessed.Widgets.Screen, categories:
 
     list.focus();
 
-    // Tastatur-Shortcuts einrichten
+    // Setup keyboard shortcuts
     list.key(['1'], () => {
       resolve(MainMenuSelection.GENERAL_FEED);
       cleanup();
     });
 
-    // Funktion zum Anzeigen des Kategorien-Untermenüs
-    function showCategoryMenu() {
-      helpBox.setView("nested-list");
-
-      // Kategorien-Items definieren
-      const categoryItems: ListItem[] = [
-        { text: 'Kategorisierte Feeds', isHeading: true }
-      ];
-      if (categories.length === 0) {
-        categoryItems.push({text: "Keine Kategorien angelegt"});
-      } else {
-        categoryItems.push(...categories.map((c) =>  { return { text: c.name , key: c.id! } as ListItem }));
-      }
-
-      // Erstelle das Untermenü mit der richtigen Höhe und Breite
-      const categoryList = createSelectableList(screen, mainScreenBox, categoryItems, {
-        top: 21,
-        left: 0,
-        width: 'shrink',
-        height: Math.min(categoryItems.length + 2, getScreenHeight(screen) - 22),
-        border: true,
-        padding: { left: 1, right: 1 }
-      });
-
-      // Stellen Sie sicher, dass die Kategorienliste im Fokus ist
-      categoryList.focus();
-      screen.render();
-
-      // Tastatur-Handler für das Untermenü
-      categoryList.key(['backspace', 'q'], () => {
-        helpBox.resetView();
-        categoryList.destroy();
-        helpBox.setView("main-screen");
-        screen.render();
-        list.focus();
-      });
-
-      // Enter-Taste für das Untermenü
-      categoryList.key('enter', () => {
-        const selectedIndex = (categoryList as any).selected as number;
-        const selectedItem = categoryItems[selectedIndex];
-
-        if (selectedItem && !selectedItem.isHeading) {
-          resolve(selectedItem.key as number);
-          cleanup();
-          helpBox.resetView();
-          categoryList.destroy();
-          screen.render();
-        }
-      });
-    }
-
-    // Zeige das Kategorien-Untermenü bei Taste "2"
+    // Show the categories submenu when "2" is pressed
     list.key(['2'], () => {
       showCategoryMenu();
     });
@@ -206,13 +159,11 @@ export async function showMainScreen(screen: blessed.Widgets.Screen, categories:
       }
     });
 
-    // Enter-Taste für die Hauptliste
     list.key('enter', () => {
       const selectedIndex = (list as any).selected as number;
       const selectedItem = items[selectedIndex];
 
       if (selectedItem && !selectedItem.isHeading && selectedItem.key !== undefined) {
-        // FIXED: Wenn "Show Category Feed" ausgewählt ist, öffne das Untermenü
         if (selectedItem.key === MainMenuSelection.CATEGORY_LIST) {
           showCategoryMenu();
         } else {
@@ -226,7 +177,59 @@ export async function showMainScreen(screen: blessed.Widgets.Screen, categories:
       }
     });
 
-    // Aufräumfunktion
+    /**
+     * Shows the category submenu with available categories
+     */
+    function showCategoryMenu() {
+      // Define category items
+      const categoryItems: ListItem[] = [
+        { text: 'Categorized Feeds', isHeading: true }
+      ];
+      if (categories.length === 0) {
+        categoryItems.push({text: "No categories created"});
+      } else {
+        categoryItems.push(...categories.map((c) =>  { return { text: c.name , key: c.id! } as ListItem }));
+      }
+
+      // Create submenu with appropriate height and width
+      const categoryList = createSelectableList(screen, mainScreenBox, categoryItems, {
+        top: 21,
+        left: 0,
+        width: 'shrink',
+        height: Math.min(categoryItems.length + 2, getScreenHeight(screen) - 22),
+        border: true,
+        padding: { left: 1, right: 1 }
+      });
+
+      // Ensure category list has focus
+      categoryList.focus();
+      screen.render();
+
+      categoryList.key(['backspace', 'q'], () => {
+        helpBox.resetView();
+        categoryList.destroy();
+        helpBox.setView("main-screen");
+        screen.render();
+        list.focus();
+      });
+
+      categoryList.key('enter', () => {
+        const selectedIndex = (categoryList as any).selected as number;
+        const selectedItem = categoryItems[selectedIndex];
+
+        if (selectedItem && !selectedItem.isHeading) {
+          resolve(selectedItem.key as number);
+          cleanup();
+          helpBox.resetView();
+          categoryList.destroy();
+          screen.render();
+        }
+      });
+    }
+
+    /**
+     * Cleanup function to remove UI elements
+     */
     function cleanup() {
       mainScreenBox.destroy();
       screen.render();

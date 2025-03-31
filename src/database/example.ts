@@ -2,6 +2,9 @@ import db from "./database";
 import { NewsItem } from "../interfaces/news-item";
 import { RssFeed } from "../interfaces/rss-feed";
 
+/**
+ * Example main function for testing database operations and relationships
+ */
 async function main() {
     await db.initialize();
 

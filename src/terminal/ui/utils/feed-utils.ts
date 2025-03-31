@@ -1,13 +1,31 @@
 import blessed from 'more-blessed';
 
+/**
+ * Gets the width of the terminal screen
+ *
+ * @param screen The blessed screen instance
+ * @returns The width of the screen in characters
+ */
 export function getScreenWidth(screen: blessed.Widgets.Screen): number {
   return screen.width as number;
 }
 
+/**
+ * Gets the height of the terminal screen
+ *
+ * @param screen The blessed screen instance
+ * @returns The height of the screen in characters
+ */
 export function getScreenHeight(screen: blessed.Widgets.Screen): number {
   return screen.height as number;
 }
 
+/**
+ * Counts the number of digits in a number
+ *
+ * @param num Number to count digits of
+ * @returns Number of digits
+ */
 export function countDigits(num: number): number {
   return Math.abs(num)
     .toString()
@@ -16,25 +34,22 @@ export function countDigits(num: number): number {
 }
 
 /**
- * Formatiert einen Text für die Terminalanzeige mit folgenden Funktionen:
- * - Wörter werden nicht am Zeilenende getrennt
- * - Jeder Text beginnt mit einem Prafix z.B. (📖 ) Standartwert: '  '
- * - Nach Zeilenumbrüchen wird der Text eingerückt, sodass er bündig beginnt
+ * Formats text for terminal display with the following features:
+ * - Words are not split at the end of lines
+ * - Each text starts with a prefix (e.g. "📖 "), default: '  '
+ * - After line breaks, the text is indented so that it starts aligned
  *
- * @param prefix Das Präfix, das vor jeder Zeile hinzugefügt wird z.B. '📖 ' (Standart: '  ')
- * @param text Der zu formatierende Text (z.B. eine RSS-Beschreibung)
- * @param maxWidth Maximale Breite des Texts im Terminal (in Zeichen)
- * @returns Formatierter Text für die Terminalausgabe
+ * @param prefix The prefix added before each line, e.g. '📖 ' (default: '  ')
+ * @param text The text to format (e.g. an RSS description)
+ * @param maxWidth Maximum width of text in the terminal (in characters)
+ * @returns Formatted text for terminal output
  */
 export function formatTerminalText(prefix:string = '  ',text: string, maxWidth: number): string {
-  // Berechne die Einrückung basierend auf der Länge des Präfixes
   const indentation = ' '.repeat(prefix.length);
 
-  // Entferne überschüssige Leerzeichen und normalisiere Zeilenumbrüche
-  // const normalizedText = text.replace(/\s+/g, ' ').trim();
   const normalizedText = (text || "").replace(/\s+/g, ' ').trim();
 
-  // Die effektive Breite für den Text nach Abzug des Paddings und des Präfixes
+  // The effective width for text after subtracting padding and prefix
   const effectiveWidth = maxWidth - 2 - prefix.length;
 
   if (effectiveWidth <= 0) {
@@ -45,29 +60,23 @@ export function formatTerminalText(prefix:string = '  ',text: string, maxWidth: 
   const lines: string[] = [];
   let currentLine = '';
 
-  // Verarbeite jedes Wort
+  // Process each word
   for (const word of words) {
-    // Prüfe, ob das Wort in die aktuelle Zeile passt
     if (currentLine.length === 0) {
-      // Erste Wort in einer neuen Zeile
       currentLine = word;
     } else if (currentLine.length + 1 + word.length <= effectiveWidth) {
-      // Wort passt in die aktuelle Zeile
       currentLine += ' ' + word;
     } else {
-      // Wort passt nicht in die aktuelle Zeile, füge aktuelle Zeile zu den Zeilen hinzu
-      // und beginne eine neue Zeile mit dem Wort
       lines.push(currentLine);
       currentLine = word;
     }
   }
 
-  // Letzte Zeile hinzufügen, falls vorhanden
   if (currentLine.length > 0) {
     lines.push(currentLine);
   }
 
-  // Formatiere die Zeilen mit Präfix und Einrückung
+  // Format lines with prefix and indentation
   const formattedText = lines.map((line, index) => {
     return index === 0 ? prefix + line : indentation + line;
   }).join('\n');

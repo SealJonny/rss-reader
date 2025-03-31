@@ -2,7 +2,11 @@ import blessed from 'more-blessed';
 import { wait, hexToRgb, interpolateColor, colorText } from '../utils/animation-utils';
 import insertJob from '../../../database/jobs/insert-job';
 
-// Frames für die Startanimation
+/**
+ * ASCII art frames for the start animation
+ * Each array element represents a frame,
+ * and each frame contains an array of strings for each line
+ */
 const startAnimationFrames: string[][] = [
   [
     "██████╗ ",
@@ -76,29 +80,23 @@ const startAnimationFrames: string[][] = [
     "██║  ██║███████║███████║    ██║  ██║███████╗██║  ██║██████╔╝███████╗██║  ██║",
     "╚═╝  ╚═╝╚══════╝╚══════╝    ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═════╝ ╚══════╝╚═╝  ╚═╝",
   ],
-  [
-    "██████╗ ███████╗███████╗    ██████╗ ███████╗ █████╗ ██████╗ ███████╗██████╗",
-    "██╔══██╗██╔════╝██╔════╝    ██╔══██╗██╔════╝██╔══██╗██╔══██╗██╔════╝██╔══██╗",
-    "██████╔╝███████╗███████╗    ██████╔╝█████╗  ███████║██║  ██║█████╗  ██████╔╝",
-    "██╔══██╗╚════██║╚════██║    ██╔══██╗██╔══╝  ██╔══██║██║  ██║██╔══╝  ██╔══██╗",
-    "██║  ██║███████║███████║    ██║  ██║███████╗██║  ██║██████╔╝███████╗██║  ██║",
-    "╚═╝  ╚═╝╚══════╝╚══════╝    ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═════╝ ╚══════╝╚═╝  ╚═╝",
-  ],
 ];
 
 /**
- * Zeigt die Startanimation
- * @param screen Der blessed Screen
- * @returns Das erstellte AnimationBox Element
+ * Displays the start animation with ASCII art
+ * 
+ * @param screen The blessed screen instance
+ * @param bindToInsertJob Whether to bind the animation completion to the insert job completion
+ * @returns Promise resolving to the created animation box element
  */
 export async function showStartAnimation(screen: blessed.Widgets.Screen, bindToInsertJob: boolean = false): Promise<blessed.Widgets.BoxElement> {
-  // Berechne die maximale Zeilenlänge für horizontale Zentrierung
+  // Calculate the maximum line length for horizontal centering
   const maxLineLength = startAnimationFrames.reduce((max, frame) => {
     const frameMax = frame.reduce((m, line) => Math.max(m, line.length), 0);
     return Math.max(max, frameMax);
   }, 0);
 
-  // Erstelle die Box für die Animation (ohne Border)
+  // Create the box for the animation (without border)
   const animationBox = blessed.box({
     top: 'center',
     left: 'center',
@@ -112,13 +110,13 @@ export async function showStartAnimation(screen: blessed.Widgets.Screen, bindToI
   screen.append(animationBox);
   screen.render();
 
-  // Definiere Start- und Endfarben
+  // Define start and end colors for the animation
   const startColor = hexToRgb("#B2A4FF");
   const endColor = hexToRgb("#FFB4B4");
 
-  // Animation: Frames anzeigen mit schrittweiser Beschleunigung
+  // Animation: Display frames with gradual acceleration
   let currentWait = 225;
-  const accelerationFactor = 0.95; // kleiner = schneller
+  const accelerationFactor = 0.95; // smaller = faster
 
   for (const frame of startAnimationFrames) {
     const totalLines = frame.length;
@@ -134,15 +132,12 @@ export async function showStartAnimation(screen: blessed.Widgets.Screen, bindToI
     currentWait *= accelerationFactor;
   }
 
-    //job ? colorText("Die Datenbank wird gerade gefüllt...", startColor) : colorText("Drücke ENTER um fortzufahren...", startColor)
-  // Hinweistext hinzufügen, dass Enter gedrückt werden soll
-  animationBox.setContent(`${animationBox.getContent()}\n\n${bindToInsertJob ? colorText("Die Datenbank wird gerade gefüllt...", startColor) : colorText("Drücke ENTER um fortzufahren...", startColor)}`
-    //colorText("Drücke ENTER um fortzufahren...", startColor)
-  );
+  // Add hint text based on whether we're binding to the insert job
+  animationBox.setContent(`${animationBox.getContent()}\n\n${bindToInsertJob ? colorText("Die Datenbank wird gerade gefüllt...", startColor) : colorText("Drücke ENTER um fortzufahren...", startColor)}`);
 
   screen.render();
 
-  // Warten, bis Enter gedrückt wird
+  // Wait until Enter is pressed or the job completes
   animationBox.focus();
   await new Promise<void>((resolve) => {
     if (bindToInsertJob) {
@@ -157,7 +152,7 @@ export async function showStartAnimation(screen: blessed.Widgets.Screen, bindToI
     }
   });
 
-  // AnimationBox ausblenden
+  // Hide the animation box
   animationBox.hide();
   screen.render();
   return animationBox;

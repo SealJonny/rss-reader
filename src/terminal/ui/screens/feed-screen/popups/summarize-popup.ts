@@ -7,7 +7,15 @@ import { summarizeText } from "../../../../../ai/summarize-text";
 import notificationBox, { Notification } from "../../../components/notification";
 import { formatTerminalText } from "../../../utils/feed-utils";
 
+/**
+ * Shows a popup with a summarized version of a news article
+ *
+ * @param news The news item to summarize
+ * @param screen The blessed screen instance
+ * @returns Promise that resolves when the popup is closed
+ */
 export async function showSummarizePopup(news: NewsItem, feedBox: blessed.Widgets.BoxElement, screen: blessed.Widgets.Screen) {
+  // Create popup box for the summary
   const parentBox = blessed.box({
     parent: screen,
     left: 'center',

@@ -5,7 +5,14 @@ import { CategoryListState } from "./category-screen";
 import { colors } from '../../../themes/default-theme';
 
 /**
- * Renders the feed list with current selection
+ * Renders the category list with current selection
+ *
+ * @param screen The blessed screen instance
+ * @param categoryList The list element that displays categories
+ * @param categories Array of categories to display
+ * @param state Current state of the category list selection
+ * @param detailsBox Optional box for displaying category details
+ * @param separator Optional separator line between list and details
  */
 export function renderList(
   screen: blessed.Widgets.Screen,
@@ -57,7 +64,10 @@ export function renderList(
 }
 
 /**
- * Renders the feed details in the details box
+ * Renders the category details in the details box
+ *
+ * @param detailsBox The box element for displaying category details
+ * @param category The category to display details for
  */
 function renderDetails(
   detailsBox: blessed.Widgets.BoxElement,

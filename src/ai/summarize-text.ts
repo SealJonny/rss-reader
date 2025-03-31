@@ -12,7 +12,7 @@ export async function summarizeText(text: string, signal: AbortSignal): Promise<
   const completion = await openai.chat.completions.create(
     {
       messages: [
-        { role: "system", content: systemPrompt},
+        { role: "developer", content: systemPrompt},
         { role: "user", content: text.slice(0, 5000)}
       ],
       model: "gpt-4o",

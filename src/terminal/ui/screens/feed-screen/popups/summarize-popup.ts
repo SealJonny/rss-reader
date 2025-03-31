@@ -41,6 +41,16 @@ export async function showSummarizePopup(news: NewsItem, feedBox: blessed.Widget
     label: "Zusammenfassung"
   });
 
+  const loading = blessed.loading({
+    parent: screen,
+    top: 'center',
+    left: 'center',
+    width: '50%',
+    height: 5,
+    border: 'line',
+    content: "ChatGPT denkt nach..."
+  });
+
   screen.render();
 
   // Focus on the form
@@ -48,7 +58,6 @@ export async function showSummarizePopup(news: NewsItem, feedBox: blessed.Widget
 
   feedBox.show();
   helpBox.resetView();
-  helpBox.setView("summarize-popup");
 
   popup.key(['down', 'j'], () => {
     popup.scroll(1);
@@ -64,13 +73,14 @@ export async function showSummarizePopup(news: NewsItem, feedBox: blessed.Widget
   screen.render();
 
   let abortController = new AbortController();
+
+  loading.load("ChatGPT denkt nach...");
   fetchWebpage(news).then(async text => {
     if (text) {
       try {
         const summarized = await summarizeText(text, abortController.signal);
         const formatedText = formatTerminalText("", summarized, Number(popup.width) - 2);
         popup.setContent(formatedText);
-        screen.render();
       } catch (error) {
         if (!abortController.signal.aborted) {
           notificationBox.addNotifcation({
@@ -80,6 +90,11 @@ export async function showSummarizePopup(news: NewsItem, feedBox: blessed.Widget
           });
         }
 
+      } finally{
+        loading.stop();
+        loading.destroy();
+        helpBox.setView("summarize-popup");
+        screen.render();
       }
       return;
     }

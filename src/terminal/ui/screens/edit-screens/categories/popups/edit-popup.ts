@@ -109,8 +109,8 @@ export async function showEditPopup(
     },
     inputOnFocus: true
   });
-  if (category) {
-    descriptionInput.setValue("test\ntest");
+  if (category && category.description) {
+    descriptionInput.setValue(category.description);
   }
 
   form.key(['enter'], () => form.submit());
@@ -165,8 +165,12 @@ export async function showEditPopup(
 
       if (category) {
         category.name = data.name || category.name;
+        category.description = data.description || null;
       } else {
-        category = { name: data.name, description: null }
+        category = {
+          name: data.name,
+          description: data.description || null
+        }
       }
 
       let savedCategory: Category | undefined;

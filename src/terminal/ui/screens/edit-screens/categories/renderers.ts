@@ -68,10 +68,8 @@ function renderDetails(
   // Show title as header
   content += `{bold}{${colors.secondary}-fg}${category.name}{/${colors.secondary}-fg}{/bold}\n\n`;
 
-  // Show feed details
-  content += `{bold}{${colors.primary}-fg}ID:{/${colors.primary}-fg}{/bold} \n${category.id}\n\n`;
-  // content += `{bold}{${colors.primary}-fg}Description:{/${colors.primary}-fg}{/bold} \n${category.description}\n\n`;
-
+  // Show description
+  content += `{bold}{${colors.primary}-fg}Description:{/${colors.primary}-fg}{/bold} \n${category.description || "Keine"}\n\n`;
 
   detailsBox.setContent(content);
 }

@@ -170,7 +170,7 @@ export async function showEditCategoriesScreen(screen: blessed.Widgets.Screen): 
         screen.once('keypress', async (_, key) => {
           if (key.name === 'y' || key.name === 'Y') {
             try {
-              await db.rssFeeds.delete(selectedCategory.id!);
+              await db.categories.delete(selectedCategory.id!);
               categories = categories.filter(f => f.id !== selectedCategory.id);
 
               // Update selection
@@ -179,7 +179,7 @@ export async function showEditCategoriesScreen(screen: blessed.Widgets.Screen): 
               }
 
               notification.destroy();
-              notificationBox.addNotifcation({message: `Kategorie "${selectedCategory.name}" wurde gelöscht `, durationInMs: 3000, isError: true, highPriority: true})
+              notificationBox.addNotifcation({message: `Kategorie "${selectedCategory.name}" wurde gelöscht `, durationInMs: 3000, isError: false})
               renderList(screen, categoryListBox, categories, state, detailsBox, separator);
             } catch (error) {
               notification.destroy();

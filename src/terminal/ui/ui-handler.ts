@@ -158,7 +158,6 @@ export async function main() {
  * Hilfsfunktion für das Anzeigen verschiedener Feed-Typen
  */
 async function showFeed(screen: blessed.Widgets.Screen, category: Category | SystemCategory) {
-  helpBox.setView("rss-feed");
   try {
     const rssFeed = await showRssFeedScreen(screen, category);
     rssFeed.focus();

@@ -10,21 +10,22 @@ export class Categories extends DbTable<Category> {
   async add(category: Category): Promise<Category | undefined> {
     const query = `
       INSERT INTO ${this.tableName}
-      (name) VALUES (?)
+      (name, description) VALUES (?, ?)
     `;
-    return await this.executeInsert(query, category.name);
+    return await this.executeInsert(query, category.name, category.description);
   }
 
   async update(id: number, category: Category): Promise<Category | undefined> {
     const query = `
       UPDATE ${this.tableName}
-      SET name = ?
+      SET name = ?, description = ?
       WHERE id = ?
     `;
     return await this.executeUpdate(
       id,
       query,
       category.name,
+      category.description,
       id
     );
   }

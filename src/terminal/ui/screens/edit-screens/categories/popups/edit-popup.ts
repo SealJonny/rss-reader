@@ -166,7 +166,7 @@ export async function showEditPopup(
       if (category) {
         category.name = data.name || category.name;
       } else {
-        category = { name: data.name }
+        category = { name: data.name, description: null }
       }
 
       let savedCategory: Category | undefined;

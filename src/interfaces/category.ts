@@ -1,6 +1,7 @@
 export interface Category {
-    id?: number;
-    name: string
+  id?: number;
+  name: string;
+  description: string | null;
 }
 
 export enum SystemCategory {

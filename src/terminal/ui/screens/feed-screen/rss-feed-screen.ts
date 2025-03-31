@@ -65,9 +65,6 @@ async function showNewsItem(
 
   feedBox.setContent(content);
   screen.render();
-
-  feedBox.setContent(content);
-  screen.render();
 }
 
 /**
@@ -80,6 +77,8 @@ export async function showRssFeedScreen(
   screen: blessed.Widgets.Screen,
   category: Category | SystemCategory,
 ): Promise<blessed.Widgets.BoxElement> {
+  helpBox.resetView();
+  helpBox.setView("rss-feed");
   let currentIndex: number = 0;
 
   let categoryName = "";
@@ -134,7 +133,7 @@ export async function showRssFeedScreen(
     keys: true,
     scrollable: true,
     alwaysScroll: true,
-    mouse: true,
+    mouse: false,
     content: `Lade ${categoryName}...${' '.repeat(getScreenWidth(screen) - (8 + categoryName.length))}`,
     tags: true,
     // Speichere den Feed-Titel als private Option
@@ -213,9 +212,12 @@ export async function showRssFeedScreen(
     });
 
     feedBox.key(['s'], async () => {
-      await showSummarizePopup(newsItems[currentIndex], screen);
-      helpBox.setView("rss-feed");
+      feedBox.hide();
       screen.render();
+      await showSummarizePopup(newsItems[currentIndex], feedBox, screen);
+      await showNewsItem(newsItems[currentIndex], currentIndex, newsItems.length, feedBox, screen);
+      feedBox.focus();
+      helpBox.setView("rss-feed");
     })
 
     // Navigation: Nächster Artikel

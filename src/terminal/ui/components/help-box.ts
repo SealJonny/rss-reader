@@ -1,7 +1,7 @@
 import blessed from 'more-blessed';
 import { colors } from '../themes/default-theme';
 
-type View = "main-screen" | "rss-feed" | "nested-list" | "edit-feeds-list" | "edit-categories-list" | "edit-popup" | "edit-popup-insert" | "edit-popup-single" | "edit-popup-single-insert";
+type View = "main-screen" | "rss-feed" | "nested-list" | "edit-feeds-list" | "edit-categories-list" | "edit-popup" | "edit-popup-insert" | "edit-popup-single" | "edit-popup-single-insert" | "summarize-popup";
 
 export class HelpBox {
   private box: blessed.Widgets.BoxElement | null = null;
@@ -31,7 +31,7 @@ export class HelpBox {
 
     switch (view) {
       case "rss-feed":
-        this.box.setContent('[o] Link Öffnen [f] Favorisieren  [↑/↓] Navigieren  [q] Zurück');
+        this.box.setContent('[o] Link Öffnen [f] Favorisieren [s] Zusammenfassen [↑/↓] Navigieren  [q] Zurück');
         break;
       case "main-screen":
         this.box.setContent('[enter] Auswählen  [↑/↓] Navigieren  [ctrl+c] Verlassen');
@@ -56,6 +56,9 @@ export class HelpBox {
         break;
       case "edit-popup-single-insert":
         this.box.setContent('[esc] Einfügen verlassen');
+        break;
+      case "summarize-popup":
+        this.box.setContent('[esc | q] Verlassen');
         break;
       default:
         break;

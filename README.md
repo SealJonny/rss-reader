@@ -148,8 +148,10 @@ DIE SOFTWARE WIRD OHNE JEDE AUSDRÜCKLICHE ODER IMPLIZIERTE GARANTIE BEREITGESTE
 Entwickelt von [Ivo Jonathan Brauns](https://github.com/NOTOXio) und [Jonathan Fritsch](https://github.com/SealJonny) als Studienprojekt für die Duale Hochschule.
 
 ### Kontakt
+Ivo Jonathan Brauns
 - GitHub: [@NOTOXio](https://github.com/NOTOXio)
 - E-Mail: [ivo.jonathan.brauns@gmail.com]
 
+Jonathan Fritsch
 - GitHub: [@SealJonny](https://github.com/SealJonny)
 - E-Mail: [jon.fri14@gmail.com]

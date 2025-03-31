@@ -2,7 +2,7 @@
 
 Ein Terminal-basierter RSS-Feed-Reader mit KI-gestützter Kategorisierung, der es ermöglicht, Nachrichten aus verschiedenen Quellen zu lesen, zu organisieren und zu verwalten.
 
-![RSS-Reader Screenshot (Platzhalter)](#)
+![RSS-Reader Screenshot (Platzhalter)](/images/main-menu.png)
 
 ## Funktionen
 
@@ -131,6 +131,8 @@ Der RSS-Feed-Reader wurde mit folgenden Technologien entwickelt:
   - Erweiterte Textformatierung für bessere Lesbarkeit in der Terminal-Umgebung
   - Tastenkürzel für schnelle Navigation und Aktionen
 
+- **NPM-Modul more-blessed**
+  - Veröffentlichung einer Erweiterung der Library blessed als NPM Modul
 ## Lizenz
 
 MIT Lizenz

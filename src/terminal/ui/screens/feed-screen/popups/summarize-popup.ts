@@ -112,6 +112,7 @@ export async function showSummarizePopup(news: NewsItem, feedBox: blessed.Widget
       isError: true,
       highPriority: true
     });
+    loading.stop();
   }).catch(error => {
     notificationBox.addNotifcation({
       message: "Fehler: Während des Ladens dieser Seite ist etwas schiefgelaufen  ",

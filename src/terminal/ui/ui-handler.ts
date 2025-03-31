@@ -1,6 +1,5 @@
 import blessed from 'more-blessed';
 import { showStartAnimation } from './screens/start-animation';
-import { showRssFeedScreen } from './screens/rss-feed-screen';
 import { showMainScreen, MainMenuSelection } from './screens/main-screen';
 import helpBox from './components/help-box';
 import { createConfirmBox } from './utils/ui-utils';
@@ -13,6 +12,7 @@ import notificationBox from './components/notification';
 import { EntityUpdateError } from '../../errors/database';
 import { showEditCategoriesScreen } from './screens/edit-screens/categories/category-screen';
 import { showEditFeedsScreen } from './screens/edit-screens/feeds/feeds-screen';
+import { showRssFeedScreen } from './screens/feed-screen/rss-feed-screen';
 
 
 export async function syncDatabase(screen: blessed.Widgets.Screen): Promise<void> {

@@ -1,12 +1,14 @@
 import blessed from 'more-blessed';
 import open from 'open';
-import { NewsItem } from "../../../interfaces/news-item";
-import { createNotificationBox } from "../utils/ui-utils";
-import { colors } from '../themes/default-theme';
-import { getScreenWidth, formatTerminalText, countDigits } from '../utils/feed-utils';
-import { Category, isSystemCategory, SystemCategory } from '../../../interfaces/category';
-import db from '../../../database/database';
-import notificationBox from '../components/notification';
+import { colors } from '../../themes/default-theme';
+import db from '../../../../database/database';
+import { Category, SystemCategory, isSystemCategory } from '../../../../interfaces/category';
+import { NewsItem } from '../../../../interfaces/news-item';
+import notificationBox from '../../components/notification';
+import { countDigits, getScreenWidth, formatTerminalText } from '../../utils/feed-utils';
+import { createNotificationBox } from '../../utils/ui-utils';
+import helpBox from '../../components/help-box';
+import { showSummarizePopup } from './popups/summarize-popup';
 
 /**
  * Zeigt die Details eines Nachrichtenelements an
@@ -88,6 +90,15 @@ export async function showRssFeedScreen(
       switch (category) {
         case SystemCategory.GENERAL:
           newsItems = await db.news.all();
+          newsItems = newsItems.filter(n => {
+            if (!n.isFavorite) {
+              return n;
+            }
+            const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
+            if (n.creationDate > oneDayAgo) {
+              return n;
+            }
+          });
           categoryName = SystemCategory.GENERAL;
           break;
         case SystemCategory.FAVORITES:
@@ -97,6 +108,15 @@ export async function showRssFeedScreen(
       }
     } else {
       newsItems = await db.join.getNewsForCategory((category as Category).id!); // Todo: Error Handling
+      newsItems = newsItems.filter(n => {
+        if (!n.isFavorite) {
+          return n;
+        }
+        const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
+        if (n.creationDate > oneDayAgo) {
+          return n;
+        }
+      });
       categoryName = category.name;
     }
   } catch (error) {
@@ -191,6 +211,12 @@ export async function showRssFeedScreen(
         notificationBox.addNotifcation({message: `Fehler beim Öffnen des Links: ${err}`, durationInMs: 3000, isError: true});
       });
     });
+
+    feedBox.key(['s'], async () => {
+      await showSummarizePopup(newsItems[currentIndex], screen);
+      helpBox.setView("rss-feed");
+      screen.render();
+    })
 
     // Navigation: Nächster Artikel
     feedBox.key(['down', 'j'],async () => {

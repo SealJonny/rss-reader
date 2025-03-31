@@ -1,7 +1,7 @@
 import { Database } from "sqlite";
 import { NewsItem } from "../../interfaces/news-item";
 import { Category } from "../../interfaces/category";
-import { EntityCreateError } from "../../errors/database";
+import { EntityCreateError, EntityDeleteError } from "../../errors/database";
 
 export type CategoryNewsRelationship = {
   newsId: number;
@@ -17,6 +17,15 @@ export class NewsCategories {
     this.tableName = tableName;
   }
 
+  async deleteAllRelationships() {
+    const query = `DELETE FROM ${this.tableName}`;
+    try {
+      await this.dbConnection.run(query);
+    } catch (error) {
+      throw EntityDeleteError.from(error, this.tableName);
+    }
+  }
+
   async addCategoryToNews(...relationships: CategoryNewsRelationship[]): Promise<boolean> {
     relationships = relationships.filter(r => !isNaN(r.newsId) && !isNaN(r.categoryId));
     if (relationships.length === 0) {
@@ -26,7 +35,7 @@ export class NewsCategories {
 
     const placeholders = relationships.map(() => "(?, ?)").join(", ")
     const query = `
-      INSERT INTO 
+      INSERT INTO
       ${this.tableName}
       (categoryId, newsId)
       VALUES ${placeholders}

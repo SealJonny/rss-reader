@@ -43,7 +43,7 @@ export class HelpBox {
         this.box.setContent('[a] Hinzufügen  [c] ChatGPT Suche  [e] Bearbeiten  [d] Löschen  [↑/↓] Navigieren  [q] Zurück');
         break;
       case "edit-categories-list":
-        this.box.setContent('[a] Hinzufügen [e] Bearbeiten  [d] Löschen  [↑/↓] Navigieren  [q] Zurück');
+        this.box.setContent('[a] Hinzufügen [e] Bearbeiten [r] Neuladen [d] Löschen  [↑/↓] Navigieren  [q] Zurück');
         break;
       case "edit-popup":
         this.box.setContent('[Tab] Felder wechseln [i] Einfügen [enter] Speichern  [esc | q] Abbrechen');

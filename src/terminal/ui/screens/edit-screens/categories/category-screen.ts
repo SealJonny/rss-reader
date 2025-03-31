@@ -7,6 +7,8 @@ import notificationBox from '../../../components/notification';
 import { createNotificationBox } from '../../../utils/ui-utils';
 import { showEditPopup } from './popups/edit-popup';
 import { renderList } from './renderers';
+import { EntityMultiUpdateError } from '../../../../../errors/database';
+import { syncDatabase } from '../../../ui-handler';
 
 // Type for tracking expanded state of feeds
 export type CategoryListState = {
@@ -141,6 +143,38 @@ export async function showEditCategoriesScreen(screen: blessed.Widgets.Screen): 
     await showEditPopup(screen, undefined, categories, state, categoryListBox, detailsBox, separator);
     helpBox.setView("edit-categories-list");
   });
+
+  categoryListBox.key(['r'], async () => {
+    try {
+      const news = await db.news.all({isProcessed: true});
+      if (news.length > 0) {
+        db.news.setProcessedBatch(news.map(n => n.id!), false);
+      }
+      await db.join.deleteAllRelationships();
+
+      headerBox.hide();
+      categoryListBox.hide();
+      separator.hide();
+      detailsBox.hide();
+      helpBox.resetView();
+      screen.render();
+      await syncDatabase(screen);
+
+      headerBox.show();
+      categoryListBox.show();
+      separator.show();
+      detailsBox.show();
+      categoryListBox.focus();
+      helpBox.setView("edit-categories-list");
+      screen.render();
+    } catch (error) {
+      notificationBox.addNotifcation({
+        message: "Fehler: Das Neuladen der Kategorien ist fehlgeschlagen.  ",
+        durationInMs: 3000,
+        isError: true
+      });
+    }
+  })
 
   // Edit feed (e)
   categoryListBox.key(['e'], async () => {

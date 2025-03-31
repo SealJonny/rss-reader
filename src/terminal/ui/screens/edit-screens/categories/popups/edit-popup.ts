@@ -93,7 +93,7 @@ export async function showEditPopup(
     parent: form,
     top: 5,
     left: 2,
-    content: 'Description:',
+    content: 'Beschreibung:',
     style: {
       fg: colors.accent
     }

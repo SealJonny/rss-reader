@@ -79,7 +79,7 @@ function renderDetails(
   content += `{bold}{${colors.secondary}-fg}${category.name}{/${colors.secondary}-fg}{/bold}\n\n`;
 
   // Show description
-  content += `{bold}{${colors.primary}-fg}Description:{/${colors.primary}-fg}{/bold} \n${category.description || "Keine"}\n\n`;
+  content += `{bold}{${colors.primary}-fg}Beschreibung:{/${colors.primary}-fg}{/bold} \n${category.description || "Keine"}\n\n`;
 
   detailsBox.setContent(content);
 }

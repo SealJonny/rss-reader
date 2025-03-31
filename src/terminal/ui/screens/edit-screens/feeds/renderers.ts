@@ -6,7 +6,7 @@ import { colors } from "../../../themes/default-theme";
 
 /**
  * Renders the feed list with current selection
- * 
+ *
  * @param screen The blessed screen instance
  * @param feedList The list element that displays feeds
  * @param feeds Array of RSS feeds to display
@@ -65,7 +65,7 @@ export function renderFeedList(
 
 /**
  * Renders the feed details in the details box
- * 
+ *
  * @param detailsBox The box element for displaying feed details
  * @param feed The RSS feed to display details for
  */
@@ -80,15 +80,15 @@ function renderFeedDetails(
 
   // Show feed details
   content += `{bold}{${colors.primary}-fg}URL:{/${colors.primary}-fg}{/bold} \n${feed.link}\n\n`;
-  content += `{bold}{${colors.primary}-fg}Description:{/${colors.primary}-fg}{/bold} \n${feed.description}\n\n`;
+  content += `{bold}{${colors.primary}-fg}Beschreibung:{/${colors.primary}-fg}{/bold} \n${feed.description}\n\n`;
 
   if (feed.language) {
-    content += `{bold}{${colors.primary}-fg}Language:{/${colors.primary}-fg}{/bold} \n${feed.language}\n\n`;
+    content += `{bold}{${colors.primary}-fg}Sprache:{/${colors.primary}-fg}{/bold} \n${feed.language}\n\n`;
   }
 
   if (feed.lastBuildDate) {
     const date = new Date(feed.lastBuildDate);
-    content += `{bold}{${colors.primary}-fg}Last Build Date:{/${colors.primary}-fg}{/bold} \n${date.toLocaleString()}\n\n`;
+    content += `{bold}{${colors.primary}-fg}Letzte Aktualisierung:{/${colors.primary}-fg}{/bold} \n${date.toLocaleString()}\n\n`;
   }
 
   detailsBox.setContent(content);

@@ -117,7 +117,7 @@ export async function showEditFeedsScreen(screen: blessed.Widgets.Screen): Promi
     renderFeedList(screen, feedListBox, feeds, state, detailsBox, separator);
   } catch (error) {
     notificationBox.addNotifcation({
-      message: "Fehler beim Laden der RSS Feeds.  ",
+      message: "Fehler: Das Laden der RSS Feeds ist fehlgeschlagen   ",
       durationInMs: 2500,
       isError: true
     });

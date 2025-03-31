@@ -83,7 +83,6 @@ export class CategoriseJob extends DbJob<void> {
         return [];
       }
     } catch (error) {
-      // ToDo: Error Handling
       throw error;
     }
 
@@ -125,7 +124,6 @@ export class CategoriseJob extends DbJob<void> {
       try {
         const newsList = job[i];
         if (!gptResults[i]) {
-          //Todo: Error Handling
           continue;
         }
 
@@ -153,7 +151,6 @@ export class CategoriseJob extends DbJob<void> {
         await db.news.setProcessedBatch(newsIds, true);
 
       } catch(error) {
-        // ToDo: Error Handling
         continue;
       }
     }

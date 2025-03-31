@@ -173,7 +173,7 @@ export async function showFeedEditPopup(
     // On form submission
     form.on('submit', async (data) => {
       if (data.url.length === 0) {
-        notificationBox.addNotifcation({message: 'Die URL darf nicht leer sein', durationInMs: 2500, isError: true, highPriority: true});
+        notificationBox.addNotifcation({message: 'Fehler: Die URL darf nicht leer sein', durationInMs: 2500, isError: true, highPriority: true});
         return;
       }
 
@@ -188,11 +188,11 @@ export async function showFeedEditPopup(
         }
       } catch (error) {
           if(error instanceof RssFeedNotFoundError) {
-            notificationBox.addNotifcation({message: "Die URL konnte nicht gefunden werden.  ", durationInMs: 3000, isError: true});
+            notificationBox.addNotifcation({message: "Fehler: Die URL konnte nicht gefunden werden.  ", durationInMs: 3000, isError: true});
           } else if (error instanceof RssFeedInvalidError) {
-            notificationBox.addNotifcation({message: "Die URL ist kein gültiger RSS Feed.  ", durationInMs: 3000, isError: true});
+            notificationBox.addNotifcation({message: "Fehler: Die URL ist kein gültiger RSS Feed.  ", durationInMs: 3000, isError: true});
           } else {
-            notificationBox.addNotifcation({message: "Fehler beim Validieren.   ", durationInMs: 3000, isError: true});
+            notificationBox.addNotifcation({message: "Fehler: Das Validieren ist fehlgeschlagen.   ", durationInMs: 3000, isError: true});
           }
           return;
       }
@@ -203,7 +203,7 @@ export async function showFeedEditPopup(
         savedFeed = await db.rssFeeds.save(validFeed);
       } catch (error) {
         if (error instanceof EntityCreateError) {
-          notificationBox.addNotifcation({message: `Dieser Rss Feed existiert bereits.  `, durationInMs: 2500, isError: true,});
+          notificationBox.addNotifcation({message: `Fehler: Dieser Rss Feed existiert bereits.  `, durationInMs: 2500, isError: true,});
         }
         return;
       }

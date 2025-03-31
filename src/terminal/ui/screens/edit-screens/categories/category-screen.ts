@@ -116,7 +116,11 @@ export async function showEditCategoriesScreen(screen: blessed.Widgets.Screen): 
     categories = await db.categories.all();
     renderList(screen, categoryListBox, categories, state, detailsBox, separator);
   } catch (error) {
-    notificationBox.addNotifcation({message: `Fehler beim Laden der Kategorien: ${error}   `, durationInMs: 2500, isError: true});
+    notificationBox.addNotifcation({
+      message: "Fehler: Das Laden der Kategorien ist fehlgeschlagen   ",
+      durationInMs: 2500,
+      isError: true
+    });
   }
 
   // Key handler for up navigation in the list

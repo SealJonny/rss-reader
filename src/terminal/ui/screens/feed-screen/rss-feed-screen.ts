@@ -109,7 +109,7 @@ export async function showRssFeedScreen(
           break;
       }
     } else {
-      newsItems = await db.join.getNewsForCategory((category as Category).id!); // Todo: Add error handling
+      newsItems = await db.join.getNewsForCategory((category as Category).id!);
       newsItems = newsItems.filter(n => {
         if (!n.isFavorite) {
           return n;
@@ -122,7 +122,7 @@ export async function showRssFeedScreen(
       categoryName = category.name;
     }
   } catch (error) {
-    notificationBox.addNotifcation({message: `Fehler beim Abrufen der Nachrichten: ${error}`, durationInMs: 3000, isError: true});
+    notificationBox.addNotifcation({message: "Fehler: Das Abrufen der Nachrichten ist fehlgeschlagen  ", durationInMs: 3000, isError: true});
   }
 
   // Create container for the feed
@@ -208,7 +208,7 @@ export async function showRssFeedScreen(
     // Open article in browser
     feedBox.key(['o'], () => {
       let test = open(newsItems[currentIndex].link).catch((err) => {
-        notificationBox.addNotifcation({message: `Fehler beim Öffnen des Links: ${err}`, durationInMs: 3000, isError: true});
+        notificationBox.addNotifcation({message: "Fehler: Das Öffnen des Links ist fehlgeschlagen  ", durationInMs: 3000, isError: true});
       });
     });
 

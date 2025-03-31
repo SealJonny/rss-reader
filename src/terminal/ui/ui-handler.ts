@@ -23,7 +23,7 @@ import { showRssFeedScreen } from './screens/feed-screen/rss-feed-screen';
 export async function syncDatabase(screen: blessed.Widgets.Screen, showAnimation: boolean = true): Promise<void> {
   if (insertJob.isActive() || categoriseJob.isActive()) {
     notificationBox.addNotifcation({
-      message: "Die Synchronisation läuft bereits   ",
+      message: "Fehler: Die Synchronisation läuft bereits   ",
       durationInMs: 3000,
       isError: true
     });

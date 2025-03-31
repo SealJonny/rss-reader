@@ -10,7 +10,7 @@ import { renderList } from "../renderers";
 
 /**
  * Shows a popup for adding or editing a category
- * 
+ *
  * @param screen The blessed screen instance
  * @param category Optional category to edit; if undefined, a new category will be created
  * @param categories Array of all current categories
@@ -170,7 +170,7 @@ export async function showEditPopup(
     form.on('submit', async (data) => {
       // Validate input
       if (data.name.length === 0) {
-        notificationBox.addNotifcation({message: 'Der Name darf nicht leer sein', durationInMs: 2500, isError: true, highPriority: true});
+        notificationBox.addNotifcation({message: 'Fehler: Der Name darf nicht leer sein', durationInMs: 2500, isError: true, highPriority: true});
         return;
       }
 
@@ -191,7 +191,7 @@ export async function showEditPopup(
         savedCategory = await db.categories.save(category);
       } catch (error) {
         if (error instanceof EntityCreateError) {
-          notificationBox.addNotifcation({message: `Diese Kategorie existiert bereits.  `, durationInMs: 2500, isError: true,});
+          notificationBox.addNotifcation({message: `Fehler: Diese Kategorie existiert bereits.  `, durationInMs: 2500, isError: true,});
         }
         return;
       }

@@ -111,7 +111,7 @@ export async function showSearchGptScreen(
     form.on('submit', async data => {
       if (data.prompt.length === 0) {
         notificationBox.addNotifcation({
-          message: "Der Prompt darf nicht leer sein.  ",
+          message: "Fehler: Der Prompt darf nicht leer sein.  ",
           durationInMs: 3000,
           isError: true
         });

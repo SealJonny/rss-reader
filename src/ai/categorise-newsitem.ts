@@ -74,7 +74,6 @@ export async function categoriseNewsItems(newsItems: NewsItem[], categories: Cat
     throw new AiRequestError("Could not categorise the NewsItems!");
   }
 
-  // ToDo: Error Handling
   let json = JSON.parse(output);
   if (!json) {
     throw new AiInvalidResponseError("Failed to parse response from GPT");

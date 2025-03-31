@@ -3,6 +3,7 @@ import { RssFeedInvalidError, RssFeedNotFoundError, RssFeedError } from "../erro
 import { NewsItem } from "../interfaces/news-item";
 import { RssFeed } from "../interfaces/rss-feed";
 import { parseHtmlToText, parseNewsItem } from "./parser";
+import { run } from "node:test";
 
 
 /**
@@ -57,8 +58,15 @@ export async function fetchRss(feed: RssFeed, signal: AbortSignal): Promise<News
  * @returns Parsed plain text from the webpage or null if parsing fails
  * @throws {Error} If the webpage could not be found, or if the content type is not HTML
  */
-export async function fetchWebpage(news: string): Promise<string | null> {
-  const result = await fetch(news);
+export async function fetchWebpage(news: NewsItem): Promise<string | null> {
+  let result = await fetch(news.link, {redirect: "manual"});
+  if (result.status >= 300 && result.status < 400) {
+    const url = result.headers.get("location");
+    if (url) {
+      result = await fetch(url);
+    }
+  }
+
   if (result.status === 404) {
     throw new Error("Could not find a webpage at the specified url");
   }

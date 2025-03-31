@@ -8,6 +8,7 @@ import { createNotificationBox } from '../../../utils/ui-utils';
 import { renderFeedList } from './renderers';
 import { showFeedEditPopup } from './popups/edit-popup';
 import { showSearchGptScreen } from './popups/search-popup';
+import { syncDatabase } from '../../../ui-handler';
 
 /**
  * Type for tracking selection state in the feeds list
@@ -148,8 +149,12 @@ export async function showEditFeedsScreen(screen: blessed.Widgets.Screen): Promi
 
   // Add new feed (a)
   feedListBox.key(['a'], async () => {
+    const preLength = feeds.length;
     await showFeedEditPopup(screen, undefined, feeds, state, feedListBox, detailsBox, separator);
     helpBox.setView("edit-feeds-list");
+    if (feeds.length > preLength) {
+      await syncDatabase(screen, false);
+    }
   });
 
   // Add new feed through ChatGPT (c)
@@ -221,6 +226,7 @@ export async function showEditFeedsScreen(screen: blessed.Widgets.Screen): Promi
           resolve();
         });
       });
+      notificationBox.continue();
     }
   });
 

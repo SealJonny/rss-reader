@@ -20,7 +20,7 @@ import { showRssFeedScreen } from './screens/feed-screen/rss-feed-screen';
  * @param screen The blessed screen instance
  * @returns A Promise that resolves when the synchronization has started
  */
-export async function syncDatabase(screen: blessed.Widgets.Screen): Promise<void> {
+export async function syncDatabase(screen: blessed.Widgets.Screen, showAnimation: boolean = true): Promise<void> {
   if (insertJob.isActive() || categoriseJob.isActive()) {
     notificationBox.addNotifcation({
       message: "Die Synchronisation läuft bereits   ",
@@ -31,10 +31,15 @@ export async function syncDatabase(screen: blessed.Widgets.Screen): Promise<void
   }
 
   try {
-    const startAnimation = showStartAnimation(screen, true);
+    let startAnimation: Promise<blessed.Widgets.BoxElement> | null = null;
+    if (showAnimation) {
+      startAnimation = showStartAnimation(screen, true);
+    }
     await insertJob.execute();
-    const box = await startAnimation;
-    box.destroy();
+    if (showAnimation && startAnimation) {
+      const box = await startAnimation;
+      box.destroy();
+    }
   } catch (error) {
     if (error instanceof JobAlreadyRunning) {
       notificationBox.addNotifcation({message: "Die Synchronisation läuft bereits   ", durationInMs: 3000, isError: true});
@@ -162,7 +167,6 @@ export async function main() {
  * @param category Category or system category to display
  */
 async function showFeed(screen: blessed.Widgets.Screen, category: Category | SystemCategory) {
-  helpBox.setView("rss-feed");
   try {
     const rssFeed = await showRssFeedScreen(screen, category);
     rssFeed.focus();

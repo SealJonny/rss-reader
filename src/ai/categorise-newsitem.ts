@@ -1,4 +1,5 @@
 import { AiInvalidResponseError, AiRequestError } from '../errors/ai';
+import { Category } from '../interfaces/category';
 import { NewsItem } from '../interfaces/news-item';
 import { openai } from './common';
 
@@ -20,10 +21,18 @@ import { openai } from './common';
  * Each news item can be assigned multiple categories, a single category, or no category
  * depending on its content. The categorization is context-based, not just keyword-based.
  */
-export async function categoriseNewsItems(newsItems: NewsItem[], categories: string[], numItems: number = 10, signal: AbortSignal): Promise<Record<number, string[]>> {
-  const systemPrompt = `Du erhältst ${numItems} RSS-Feed-News-Items. Jedes News-Item enthält einen Titel und eine Beschreibung. Deine Aufgabe ist es, jedem News-Item passende Kategorie(n) aus der folgenden Liste zuzuweisen. Falls der Inhalt eines News-Items nicht eindeutig einer oder mehreren der angegebenen Kategorien zugeordnet werden kann, gib für dieses Item ein leeres Array [] zurück.
+export async function categoriseNewsItems(newsItems: NewsItem[], categories: Category[], numItems: number = 10, signal: AbortSignal): Promise<Record<number, string[]>> {
 
-    Die Kategorien lauten: ${categories.join(", ")}.
+  const categoryString = categories.map(c => `
+    Name: ${c.name},
+    Beschreibung: ${c.description}
+  `).join(",\n");
+
+  const systemPrompt = `
+    Du erhältst ${numItems} RSS-Feed-News-Items. Jedes News-Item enthält einen Titel und eine Beschreibung. Deine Aufgabe ist es, jedem News-Item passende Kategorie(n) aus der folgenden Liste zuzuweisen. Falls der Inhalt eines News-Items nicht eindeutig einer oder mehreren der angegebenen Kategorien zugeordnet werden kann, gib für dieses Item ein leeres Array [] zurück.
+
+    Die Kategorien lauten:
+    ${categoryString}
 
     Hinweis: Die zugewiesenen Kategorien werden später verwendet, um die News-Items in thematisch sortierte RSS-Feeds einzuteilen. Daher ist es wichtig, dass die Kategorisierung präzise und kontextbezogen erfolgt.
 

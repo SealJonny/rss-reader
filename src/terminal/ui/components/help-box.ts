@@ -4,7 +4,7 @@ import { colors } from '../themes/default-theme';
 /**
  * Different views that can be displayed in the help box
  */
-type View = "main-screen" | "rss-feed" | "nested-list" | "edit-feeds-list" | "edit-categories-list" | "edit-popup" | "edit-popup-insert" | "edit-popup-single" | "edit-popup-single-insert";
+type View = "main-screen" | "rss-feed" | "nested-list" | "edit-feeds-list" | "edit-categories-list" | "edit-popup" | "edit-popup-insert" | "edit-popup-single" | "edit-popup-single-insert" | "summarize-popup";
 
 /**
  * Component that displays contextual help information at the bottom of the screen
@@ -46,7 +46,7 @@ export class HelpBox {
 
     switch (view) {
       case "rss-feed":
-        this.box.setContent('[o] Link Öffnen [f] Favorisieren  [↑/↓] Navigieren  [q] Zurück');
+        this.box.setContent('[o] Link Öffnen [f] Favorisieren [s] Zusammenfassen [↑/↓] Navigieren  [q] Zurück');
         break;
       case "main-screen":
         this.box.setContent('[enter] Auswählen  [↑/↓] Navigieren  [ctrl+c] Verlassen');
@@ -58,7 +58,7 @@ export class HelpBox {
         this.box.setContent('[a] Hinzufügen  [c] ChatGPT Suche  [e] Bearbeiten  [d] Löschen  [↑/↓] Navigieren  [q] Zurück');
         break;
       case "edit-categories-list":
-        this.box.setContent('[a] Hinzufügen [e] Bearbeiten  [d] Löschen  [↑/↓] Navigieren  [q] Zurück');
+        this.box.setContent('[a] Hinzufügen [e] Bearbeiten [r] Neuladen [d] Löschen  [↑/↓] Navigieren  [q] Zurück');
         break;
       case "edit-popup":
         this.box.setContent('[Tab] Felder wechseln [i] Einfügen [enter] Speichern  [esc | q] Abbrechen');
@@ -71,6 +71,9 @@ export class HelpBox {
         break;
       case "edit-popup-single-insert":
         this.box.setContent('[esc] Einfügen verlassen');
+        break;
+      case "summarize-popup":
+        this.box.setContent('[esc | q] Verlassen');
         break;
       default:
         break;

@@ -1,7 +1,7 @@
 import { Database } from "sqlite";
 import { NewsItem } from "../../interfaces/news-item";
 import { Category } from "../../interfaces/category";
-import { EntityCreateError } from "../../errors/database";
+import { EntityCreateError, EntityDeleteError } from "../../errors/database";
 
 /**
  * Type representing a relationship between a news item and a category
@@ -28,6 +28,15 @@ export class NewsCategories {
     this.tableName = tableName;
   }
 
+  async deleteAllRelationships() {
+    const query = `DELETE FROM ${this.tableName}`;
+    try {
+      await this.dbConnection.run(query);
+    } catch (error) {
+      throw EntityDeleteError.from(error, this.tableName);
+    }
+  }
+
   /**
    * Adds one or more category-news relationships to the database
    * @param relationships Array of CategoryNewsRelationship objects to add
@@ -43,7 +52,7 @@ export class NewsCategories {
 
     const placeholders = relationships.map(() => "(?, ?)").join(", ");
     const query = `
-      INSERT INTO 
+      INSERT INTO
       ${this.tableName}
       (categoryId, newsId)
       VALUES ${placeholders}

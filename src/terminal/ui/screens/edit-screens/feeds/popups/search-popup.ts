@@ -69,6 +69,17 @@ export async function showSearchGptScreen(
     inputOnFocus: true
   });
 
+  const loading = blessed.loading({
+    parent: screen,
+    hidden: true,
+    top: 'center',
+    left: 'center',
+    width: '50%',
+    height: 5,
+    border: 'line',
+    content: "ChatGPT denkt nach..."
+  });
+
   form.key(['enter'], () => form.submit());
   form.key(['escape', 'q'], () => form.reset());
   form.key(['i'], () => {
@@ -107,9 +118,20 @@ export async function showSearchGptScreen(
         return;
       }
 
-      let url: string = "";
+      loading.load("ChatGPT denkt nach...");
+
+      let url: string | null =  null;
       try {
         url = await searchRssFeed(data.prompt, feeds, invalidLinks, abortController.signal);
+        if (url === null) {
+          notificationBox.addNotifcation({
+            message: "Fehler: Es konnte entweder keine Url gefunden werden oder sie existiert bereits schon.  ",
+            durationInMs: 4000,
+            isError: true
+          });
+          return;
+        }
+
         const feed = await validateRssFeed(url);
         const savedFeed = await db.rssFeeds.save(feed);
         if (savedFeed) {
@@ -145,7 +167,7 @@ export async function showSearchGptScreen(
         if (error instanceof RssFeedNotFoundError) {
           notification.message = "Fehler: Die RSS Feed URL von ChatGPT existiert nicht.  ";
           notificationBox.addNotifcation(notification)
-          if (url.length > 0) {
+          if (url) {
             invalidLinks.push(url);
           }
           return;
@@ -154,7 +176,7 @@ export async function showSearchGptScreen(
         if (error instanceof RssFeedInvalidError) {
           notification.message = "Fehler: Die URL ist kein gültiger RSS Feed.  ";
           notificationBox.addNotifcation(notification);
-          if (url.length > 0) {
+          if (url) {
             invalidLinks.push(url);
           }
           return;
@@ -169,6 +191,8 @@ export async function showSearchGptScreen(
         notification.message = "Fehler: Etwas ist schiefgelaufen.  ";
         notificationBox.addNotifcation(notification);
         return;
+      } finally {
+        loading.stop();
       }
     });
 
@@ -177,6 +201,7 @@ export async function showSearchGptScreen(
       abortController.abort();
       form.destroy();
       helpBox.resetView();
+      loading.destroy();
       renderFeedList(screen, feedListBox, feeds, state, detailsBox, separator);
       feedListBox.focus();
       resolve();

@@ -9,6 +9,7 @@ import { validateRssFeed } from "../../../../../../rss/validater";
 import helpBox from "../../../../components/help-box";
 import notificationBox from "../../../../components/notification";
 import { renderFeedList } from "../renderers";
+import { syncDatabase } from "../../../../ui-handler";
 
 /**
  * Shows a popup for adding or editing an RSS feed
@@ -218,7 +219,7 @@ export async function showFeedEditPopup(
         }
       }
 
-      notificationBox.addNotifcation({message: `Rss Feed wurde erfolgreich ${isAdd ? 'hinzugefügt' : 'angepasst'}  `, durationInMs: 2500, isError: false});
+      notificationBox.addNotifcation({message: `Rss Feed wurde erfolgreich ${isAdd ? 'hinzugefügt' : 'angepasst'}  `, durationInMs: 3000, isError: false});
       form.destroy();
       helpBox.resetView();
       renderFeedList(screen, feedListBox, feeds, state, detailsBox, separator);

@@ -12,7 +12,7 @@ import { openai } from "./common";
  * @returns Link to the RSS feed
  *
  */
-export async function searchRssFeed(userInput: string, feeds: RssFeed[], invalidLinks: string[], signal: AbortSignal): Promise<string> {
+export async function searchRssFeed(userInput: string, feeds: RssFeed[], invalidLinks: string[], signal: AbortSignal): Promise<string | null> {
   const systemPrompt = `
     Du bist ein intelligenter Assistent, der gezielt nach RSS-Feeds sucht. Der Nutzer gibt eine Beschreibung dessen ein, wonach er sucht – entweder einen spezifischen RSS-Feed oder einen thematischen Wunsch.
     Zudem gibt der Nutzer die Links an die er schon verwendet, das heißt diese Links will der Nutzer nicht noch einmal bekommen und du musst darauf achten das du ihm kein Link aus dieser List zurückgibst.
@@ -96,5 +96,5 @@ export async function searchRssFeed(userInput: string, feeds: RssFeed[], invalid
   if (json?.link === null) {
     throw new AiInvalidResponseError(`Answer from GPT could not be parsed: ${result}`);
   }
-  return json.link as string;
+  return json.link as string || null;
 }

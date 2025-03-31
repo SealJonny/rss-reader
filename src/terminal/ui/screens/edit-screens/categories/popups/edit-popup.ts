@@ -118,8 +118,8 @@ export async function showEditPopup(
     },
     inputOnFocus: true
   });
-  if (category) {
-    descriptionInput.setValue("test\ntest");
+  if (category && category.description) {
+    descriptionInput.setValue(category.description);
   }
 
   // Setup key handlers
@@ -177,8 +177,12 @@ export async function showEditPopup(
       // Create or update category object
       if (category) {
         category.name = data.name || category.name;
+        category.description = data.description || null;
       } else {
-        category = { name: data.name }
+        category = {
+          name: data.name,
+          description: data.description || null
+        }
       }
 
       // Save category to database

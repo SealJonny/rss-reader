@@ -6,7 +6,7 @@ import { colors } from '../../../themes/default-theme';
 
 /**
  * Renders the category list with current selection
- * 
+ *
  * @param screen The blessed screen instance
  * @param categoryList The list element that displays categories
  * @param categories Array of categories to display
@@ -65,7 +65,7 @@ export function renderList(
 
 /**
  * Renders the category details in the details box
- * 
+ *
  * @param detailsBox The box element for displaying category details
  * @param category The category to display details for
  */
@@ -78,10 +78,8 @@ function renderDetails(
   // Show title as header
   content += `{bold}{${colors.secondary}-fg}${category.name}{/${colors.secondary}-fg}{/bold}\n\n`;
 
-  // Show category details
-  content += `{bold}{${colors.primary}-fg}ID:{/${colors.primary}-fg}{/bold} \n${category.id}\n\n`;
-  // content += `{bold}{${colors.primary}-fg}Description:{/${colors.primary}-fg}{/bold} \n${category.description}\n\n`;
-
+  // Show description
+  content += `{bold}{${colors.primary}-fg}Description:{/${colors.primary}-fg}{/bold} \n${category.description || "Keine"}\n\n`;
 
   detailsBox.setContent(content);
 }

@@ -109,7 +109,7 @@ export class CategoriseJob extends DbJob<void> {
   private async executeCategoriseJob(job: Job, categories: Category[], size: number): Promise<void> {
     // Asynchronously fetch GPT results for all news within the job
     const gptResults = (await Promise.allSettled(
-      job.map(newsList => categoriseNewsItems(newsList, categories.map(c => c.name), size, this.abortController.signal))
+      job.map(newsList => categoriseNewsItems(newsList, categories, size, this.abortController.signal))
     )).map(r => r.status === "fulfilled" ? r.value : undefined);
 
     if (this.abortController.signal.aborted) {

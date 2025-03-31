@@ -3,6 +3,9 @@ import { NewsItem } from "../interfaces/news-item";
 import { RssFeed } from "../interfaces/rss-feed";
 import db from "./database";
 
+/**
+ * Example function for inserting test feeds into the database
+ */
 async function insertExample() {
   let feed: RssFeed = {
     title: "test",
@@ -20,6 +23,9 @@ async function insertExample() {
   //await jobs.insertAllNews();
 }
 
+/**
+ * Example main function for testing database operations
+ */
 async function main() {
   await db.initialize();
   ["Wirtschaft", "Technik", "Politik"].forEach(async s => await db.categories.save({id: undefined, name: s}));

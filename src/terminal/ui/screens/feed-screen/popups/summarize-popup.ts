@@ -3,7 +3,15 @@ import { NewsItem } from "../../../../../interfaces/news-item";
 import { colors } from "../../../themes/default-theme";
 import helpBox from "../../../components/help-box";
 
+/**
+ * Shows a popup with a summarized version of a news article
+ *
+ * @param news The news item to summarize
+ * @param screen The blessed screen instance
+ * @returns Promise that resolves when the popup is closed
+ */
 export async function showSummarizePopup(news: NewsItem, screen: blessed.Widgets.Screen) {
+  // Create popup box for the summary
   const popup = blessed.box({
     parent: screen,
     left: 'center',

@@ -6,6 +6,13 @@ import { colors } from "../../../themes/default-theme";
 
 /**
  * Renders the feed list with current selection
+ * 
+ * @param screen The blessed screen instance
+ * @param feedList The list element that displays feeds
+ * @param feeds Array of RSS feeds to display
+ * @param state Current state of the feed list selection
+ * @param detailsBox Optional box for displaying feed details
+ * @param separator Optional separator line between list and details
  */
 export function renderFeedList(
   screen: blessed.Widgets.Screen,
@@ -58,6 +65,9 @@ export function renderFeedList(
 
 /**
  * Renders the feed details in the details box
+ * 
+ * @param detailsBox The box element for displaying feed details
+ * @param feed The RSS feed to display details for
  */
 function renderFeedDetails(
   detailsBox: blessed.Widgets.BoxElement,

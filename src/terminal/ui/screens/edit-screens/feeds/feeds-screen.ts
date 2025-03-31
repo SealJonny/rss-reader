@@ -9,18 +9,21 @@ import { renderFeedList } from './renderers';
 import { showFeedEditPopup } from './popups/edit-popup';
 import { showSearchGptScreen } from './popups/search-popup';
 
-
-
-// Type for tracking expanded state of feeds
+/**
+ * Type for tracking selection state in the feeds list
+ */
 export interface FeedListState {
   currentIndex: number;
 }
 
 /**
  * Shows a screen for editing RSS feed URLs
+ *
+ * @param screen The blessed screen instance
+ * @returns Promise that resolves when the screen is closed
  */
 export async function showEditFeedsScreen(screen: blessed.Widgets.Screen): Promise<void> {
-  // Header-Box für den Titel, der nicht scrollt
+  // Header box for the title that doesn't scroll
   const headerBox = blessed.box({
     top: 0,
     left: 0,
@@ -34,7 +37,7 @@ export async function showEditFeedsScreen(screen: blessed.Widgets.Screen): Promi
     content: `{bold}{${colors.secondary}-fg}RSS Feeds Liste{/${colors.secondary}-fg}{/bold}`,
   });
 
-  // Feed-Liste beginnt jetzt unter dem Header
+  // Feed list starts below the header
   const feedListBox = blessed.list({
     top: 3,
     left: 0,
@@ -119,7 +122,7 @@ export async function showEditFeedsScreen(screen: blessed.Widgets.Screen): Promi
     });
   }
 
-  // Key handler for the feed list
+  // Key handler for up navigation in the list
   feedListBox.key(['up', 'k'], () => {
     if (feeds.length === 0) return;
 
@@ -131,6 +134,7 @@ export async function showEditFeedsScreen(screen: blessed.Widgets.Screen): Promi
     renderFeedList(screen, feedListBox, feeds, state, detailsBox, separator);
   });
 
+  // Key handler for down navigation in the list
   feedListBox.key(['down', 'j'], () => {
     if (feeds.length === 0) return;
 
@@ -149,7 +153,6 @@ export async function showEditFeedsScreen(screen: blessed.Widgets.Screen): Promi
   });
 
   // Add new feed through ChatGPT (c)
-  // Todo: Implement this feature
   feedListBox.key(['c'], async () => {
     await showSearchGptScreen(screen, feeds, state, feedListBox, detailsBox, separator);
     helpBox.setView("edit-feeds-list");
@@ -170,7 +173,7 @@ export async function showEditFeedsScreen(screen: blessed.Widgets.Screen): Promi
 
     const selectedFeed = feeds[state.currentIndex];
     if (selectedFeed.id !== undefined) {
-      const cuttedTitle = selectedFeed.title.length > 20 ? `${selectedFeed.title.substring(0, 20)}...` : selectedFeed.title
+      const cuttedTitle = selectedFeed.title.length > 20 ? `${selectedFeed.title.substring(0, 20)}...` : selectedFeed.title;
       notificationBox.pause();
       const notification = createNotificationBox(
         screen,
@@ -214,6 +217,7 @@ export async function showEditFeedsScreen(screen: blessed.Widgets.Screen): Promi
             notification.destroy();
             screen.render();
           }
+          notificationBox.continue();
           resolve();
         });
       });

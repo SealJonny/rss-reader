@@ -1,11 +1,22 @@
 import blessed from 'more-blessed';
 import { colors } from '../themes/default-theme';
 
+/**
+ * Different views that can be displayed in the help box
+ */
 type View = "main-screen" | "rss-feed" | "nested-list" | "edit-feeds-list" | "edit-categories-list" | "edit-popup" | "edit-popup-insert" | "edit-popup-single" | "edit-popup-single-insert";
 
+/**
+ * Component that displays contextual help information at the bottom of the screen
+ * Shows different key mappings depending on the current view
+ */
 export class HelpBox {
   private box: blessed.Widgets.BoxElement | null = null;
 
+  /**
+   * Initialize the help box with a reference to the screen
+   * @param screen The blessed screen instance to attach the help box to
+   */
   public initialize(screen: blessed.Widgets.Screen) {
     this.box = blessed.box({
       parent: screen,
@@ -26,6 +37,10 @@ export class HelpBox {
     });
   }
 
+  /**
+   * Set the current view to display appropriate help information
+   * @param view The current view to display help for
+   */
   public setView(view: View) {
     if (this.box === null) return;
 
@@ -64,6 +79,9 @@ export class HelpBox {
     this.box.screen.render();
   }
 
+  /**
+   * Hide the help box and clear its content
+   */
   public resetView() {
     if (this.box === null) return;
     this.box.hide();

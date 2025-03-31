@@ -8,16 +8,21 @@ import { createNotificationBox } from '../../../utils/ui-utils';
 import { showEditPopup } from './popups/edit-popup';
 import { renderList } from './renderers';
 
-// Type for tracking expanded state of feeds
+/**
+ * Type for tracking state of the category list UI
+ */
 export type CategoryListState = {
   currentIndex: number;
 }
 
 /**
- * Shows a screen for editing RSS feed URLs
+ * Shows a screen for editing category items
+ * 
+ * @param screen The blessed screen instance
+ * @returns Promise that resolves when the screen is closed
  */
 export async function showEditCategoriesScreen(screen: blessed.Widgets.Screen): Promise<void> {
-  // Header-Box für den Titel, der nicht scrollt
+  // Header box for the title that doesn't scroll
   const headerBox = blessed.box({
     top: 0,
     left: 0,
@@ -31,7 +36,7 @@ export async function showEditCategoriesScreen(screen: blessed.Widgets.Screen): 
     content: `{bold}{${colors.secondary}-fg}Kategorien Liste{/${colors.secondary}-fg}{/bold}`,
   });
 
-  // Feed-Liste beginnt jetzt unter dem Header
+  // Category list starts below the header
   const categoryListBox = blessed.list({
     top: 3,
     left: 0,
@@ -112,7 +117,7 @@ export async function showEditCategoriesScreen(screen: blessed.Widgets.Screen): 
     notificationBox.addNotifcation({message: `Fehler beim Laden der Kategorien: ${error}   `, durationInMs: 2500, isError: true});
   }
 
-  // Key handler for the feed list
+  // Key handler for up navigation in the list
   categoryListBox.key(['up', 'k'], () => {
     if (categories.length === 0) return;
 
@@ -124,6 +129,7 @@ export async function showEditCategoriesScreen(screen: blessed.Widgets.Screen): 
     renderList(screen, categoryListBox, categories, state, detailsBox, separator);
   });
 
+  // Key handler for down navigation in the list
   categoryListBox.key(['down', 'j'], () => {
     if (categories.length === 0) return;
 
@@ -135,14 +141,14 @@ export async function showEditCategoriesScreen(screen: blessed.Widgets.Screen): 
     renderList(screen, categoryListBox, categories, state, detailsBox, separator);
   });
 
-  // Add new feed (a)
+  // Add new category (a)
   categoryListBox.key(['a'], async () => {
     helpBox.resetView();
     await showEditPopup(screen, undefined, categories, state, categoryListBox, detailsBox, separator);
     helpBox.setView("edit-categories-list");
   });
 
-  // Edit feed (e)
+  // Edit category (e)
   categoryListBox.key(['e'], async () => {
     if (categories.length === 0) return;
 
@@ -152,7 +158,7 @@ export async function showEditCategoriesScreen(screen: blessed.Widgets.Screen): 
     helpBox.setView("edit-categories-list");
   });
 
-  // Delete feed (d)
+  // Delete category (d)
   categoryListBox.key(['d'], async () => {
     if (categories.length === 0) return;
 

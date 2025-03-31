@@ -12,6 +12,15 @@ import { renderFeedList } from "../renderers";
 
 /**
  * Shows a popup for adding or editing an RSS feed
+ *
+ * @param screen The blessed screen instance
+ * @param feed Optional feed to edit; if undefined, a new feed will be created
+ * @param feeds Array of all current feeds
+ * @param state Current state of the feed list selection
+ * @param feedListBox The list element showing all feeds
+ * @param detailsBox Optional box showing feed details
+ * @param separator Optional separator line between feed list and details
+ * @returns Promise that resolves when the popup is closed
  */
 export async function showFeedEditPopup(
   screen: blessed.Widgets.Screen,
@@ -81,7 +90,7 @@ export async function showFeedEditPopup(
     nameInput.setValue(feed.title);
   }
 
-  // Create a label for the description input
+  // Create a label for the URL input
   blessed.text({
     parent: form,
     top: 5,
@@ -158,7 +167,7 @@ export async function showFeedEditPopup(
   // Render screen
   screen.render();
 
-
+  // Wait for form submission or cancel
   await new Promise<void>(resolve => {
     // On form submission
     form.on('submit', async (data) => {
@@ -187,6 +196,7 @@ export async function showFeedEditPopup(
           return;
       }
 
+      // Save the feed to database
       let savedFeed: RssFeed | undefined;
       try {
         savedFeed = await db.rssFeeds.save(validFeed);
@@ -197,6 +207,7 @@ export async function showFeedEditPopup(
         return;
       }
 
+      // Update the feeds list with the new/edited feed
       if (isAdd && savedFeed) {
         feeds.push(savedFeed);
         state.currentIndex = feeds.length - 1;
@@ -215,7 +226,6 @@ export async function showFeedEditPopup(
       resolve();
     });
 
-
     // On form cancel
     form.on('reset', () => {
       form.destroy();
@@ -224,6 +234,5 @@ export async function showFeedEditPopup(
       feedListBox.focus();
       resolve();
     });
-
-  })
+  });
 }

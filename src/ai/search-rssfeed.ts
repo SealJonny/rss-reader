@@ -3,11 +3,13 @@ import { RssFeed } from "../interfaces/rss-feed";
 import { openai } from "./common";
 
 /**
- * Searches the web via gpt for a rss feed which matches the users request
+ * Searches the web via GPT for an RSS feed which matches the user's request
  *
- * @param userInput Users prompt to gpt
- * @param signal Abortsignal which terminates the request immediately
- * @returns Link to the rss feed
+ * @param userInput User's prompt to GPT
+ * @param feeds Existing RSS feeds to avoid duplicates
+ * @param invalidLinks Previously identified invalid links to avoid
+ * @param signal AbortSignal which terminates the request immediately
+ * @returns Link to the RSS feed
  *
  */
 export async function searchRssFeed(userInput: string, feeds: RssFeed[], invalidLinks: string[], signal: AbortSignal): Promise<string> {
@@ -84,15 +86,15 @@ export async function searchRssFeed(userInput: string, feeds: RssFeed[], invalid
     { signal: signal}
   );
 
-  const result =  completion.choices[0].message.content;
+  const result = completion.choices[0].message.content;
 
   if (!result) {
-    throw new AiRequestError("No answer from gpt");
+    throw new AiRequestError("No answer from GPT");
   }
 
   const json = JSON.parse(result);
   if (json?.link === null) {
-    throw new AiInvalidResponseError(`Answer from gpt could not be parsed: ${result}`);
+    throw new AiInvalidResponseError(`Answer from GPT could not be parsed: ${result}`);
   }
   return json.link as string;
 }

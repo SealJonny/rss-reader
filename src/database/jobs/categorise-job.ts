@@ -7,11 +7,20 @@ import { DbJob } from "../db-jobs";
 
 type Job = NewsItem[][];
 
+/**
+ * Job for categorizing news items using AI
+ */
 export class CategoriseJob extends DbJob<void> {
   constructor() {
     super();
   }
 
+  /**
+   * Execute the categorization job on all unprocessed news items
+   * @returns A Promise that resolves when the job is complete
+   * @throws {JobAlreadyRunning} If the job is already running
+   * @throws {AbortError} If the job is aborted during execution
+   */
   public override async execute(): Promise<void> {
     if (this.isRunning) {
       throw new JobAlreadyRunning("This job is already running");
@@ -60,12 +69,12 @@ export class CategoriseJob extends DbJob<void> {
   }
 
   /**
-   * Fetches all NewsItems from db which are not processed yet and splitts them into jobs.
-   * Each jobs contains a maximum of 8 * size NewsItems
+   * Fetches all unprocessed NewsItems from database and splits them into jobs.
+   * Each job contains a maximum of 8 * size NewsItems.
    *
-   * @param size Size of NewsItems arrays send to GPT in one request
-   * @returns An array of Jobs each containing an array of arrays of NewsItems
-  */
+   * @param size Maximum size of NewsItems arrays sent to GPT in one request
+   * @returns An array of Jobs, each containing an array of NewsItem arrays
+   */
   private async fetchAndSplitNews(size: number): Promise<Job[]> {
     let news: NewsItem[] = [];
     try {
@@ -91,12 +100,12 @@ export class CategoriseJob extends DbJob<void> {
   }
 
   /**
-   * Execute a single categorise job
-   * @param job Job to be exectuted
+   * Execute a single categorization job
+   * @param job Job to be executed
    * @param categories Available categories
-   * @param size Batch size of a gpt request
+   * @param size Batch size of a GPT request
    * @throws {AbortError} If cancellation was requested
-  */
+   */
   private async executeCategoriseJob(job: Job, categories: Category[], size: number): Promise<void> {
     // Asynchronously fetch GPT results for all news within the job
     const gptResults = (await Promise.allSettled(
@@ -128,7 +137,7 @@ export class CategoriseJob extends DbJob<void> {
           if (result.length === 0) {
             return [];
           }
-          // Get ids for the categories returned by gpt
+          // Get ids for the categories returned by GPT
           let categoryIds = categories.filter(c => result.includes(c.name)).map(c => c.id!);
 
           return categoryIds.map(c => ({newsId: n.id!, categoryId: c}));
@@ -138,7 +147,7 @@ export class CategoriseJob extends DbJob<void> {
           throw new AbortError("Abort executing categorise job");
         }
 
-        // Save relationships in db and set news to processed
+        // Save relationships in database and set news to processed
         await db.join.addCategoryToNews(...relationships);
         const newsIds = newsList.map(n => n.id!);
         await db.news.setProcessedBatch(newsIds, true);

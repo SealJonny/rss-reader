@@ -9,7 +9,16 @@ import { colors } from "../../../../themes/default-theme";
 import { renderList } from "../renderers";
 
 /**
- * Shows a popup for adding or editing an RSS feed
+ * Shows a popup for adding or editing a category
+ * 
+ * @param screen The blessed screen instance
+ * @param category Optional category to edit; if undefined, a new category will be created
+ * @param categories Array of all current categories
+ * @param state Current state of the category list selection
+ * @param categoryListBox The list element showing all categories
+ * @param detailsBox Optional box showing category details
+ * @param separator Optional separator line between category list and details
+ * @returns Promise that resolves when the popup is closed
  */
 export async function showEditPopup(
   screen: blessed.Widgets.Screen,
@@ -113,6 +122,7 @@ export async function showEditPopup(
     descriptionInput.setValue("test\ntest");
   }
 
+  // Setup key handlers
   form.key(['enter'], () => form.submit());
   form.key(['escape', 'q'], () => form.reset());
   form.key(['i'], () => {
@@ -158,17 +168,20 @@ export async function showEditPopup(
   await new Promise<void>(resolve => {
     // On form submission
     form.on('submit', async (data) => {
+      // Validate input
       if (data.name.length === 0) {
         notificationBox.addNotifcation({message: 'Der Name darf nicht leer sein', durationInMs: 2500, isError: true, highPriority: true});
         return;
       }
 
+      // Create or update category object
       if (category) {
         category.name = data.name || category.name;
       } else {
         category = { name: data.name }
       }
 
+      // Save category to database
       let savedCategory: Category | undefined;
       try {
         savedCategory = await db.categories.save(category);
@@ -179,6 +192,7 @@ export async function showEditPopup(
         return;
       }
 
+      // Update categories list with new or updated category
       if (isAdd && savedCategory) {
         categories.push(savedCategory);
         state.currentIndex = categories.length - 1;
@@ -197,7 +211,6 @@ export async function showEditPopup(
       resolve();
     });
 
-
     // On form cancel
     form.on('reset', () => {
       form.destroy();
@@ -206,6 +219,5 @@ export async function showEditPopup(
       categoryListBox.focus();
       resolve();
     });
-
-  })
+  });
 }

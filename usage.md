@@ -74,8 +74,6 @@ Der RSS-Feed-Reader ist ein Terminal-basiertes Werkzeug zur Verwaltung und Anzei
 
 Beim ersten Start der Anwendung wird eine ASCII-Animation angezeigt, die den Text "RSS READER" einblendet. Während dieser Animation wird die Datenbank initialisiert und die ersten Feeds geladen.
 
-![Startanimation](#) *(Platzhalter für Screenshot)*
-
 Die Animation kann durch Drücken der `Enter`-Taste übersprungen werden, sobald die Datenbank-Initialisierung abgeschlossen ist.
 
 ---
@@ -118,7 +116,7 @@ Das Hauptmenü ist der zentrale Ausgangspunkt zur Navigation durch die Anwendung
 
 Sie können die entsprechenden Ziffern als Tastenkürzel verwenden oder mit den Pfeiltasten navigieren und mit `Enter` auswählen.
 
-![Hauptmenü](#) *(Platzhalter für Screenshot)*
+![Hauptmenü](/images/main-menu.png) *(Platzhalter für Screenshot)*
 
 ### RSS-Feed-Anzeige
 
@@ -133,7 +131,7 @@ Die Feed-Ansicht zeigt die Nachrichtenartikel aus der ausgewählten Kategorie od
 
 Am oberen Rand sehen Sie eine Navigationsleiste mit der aktuellen Position im Feed (z.B. "1/25 - Allgemein").
 
-![RSS-Feed-Ansicht](#) *(Platzhalter für Screenshot)*
+![RSS-Feed-Ansicht](/images/rss-feed-view.png) *(Platzhalter für Screenshot)*
 
 ### Feed-Inhalte navigieren
 

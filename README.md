@@ -131,6 +131,8 @@ Der RSS-Feed-Reader wurde mit folgenden Technologien entwickelt:
   - Erweiterte Textformatierung für bessere Lesbarkeit in der Terminal-Umgebung
   - Tastenkürzel für schnelle Navigation und Aktionen
 
+- **NPM-Modul more-blessed**
+  - Veröffentlichung einer Erweiterung der Library blessed als NPM Modul
 ## Lizenz
 
 MIT Lizenz

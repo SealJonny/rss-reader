@@ -192,6 +192,11 @@ export async function showMainScreen(screen: blessed.Widgets.Screen, categories:
       cleanup();
     });
 
+    list.key(['5'], () => {
+      resolve(MainMenuSelection.EDIT_CATEGORIES);
+      cleanup();
+    });
+
     list.key(['6'], () => {
       resolve(MainMenuSelection.SYNC);
       if (categoriseJob.isActive()) {

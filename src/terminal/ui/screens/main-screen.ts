@@ -185,10 +185,10 @@ export async function showMainScreen(screen: blessed.Widgets.Screen, categories:
       helpBox.resetView();
       helpBox.setView("nested-list");
       const categoryItems: ListItem[] = [
-        { text: 'Categorized Feeds', isHeading: true }
+        { text: 'Kategorisierte Feeds', isHeading: true }
       ];
       if (categories.length === 0) {
-        categoryItems.push({text: "No categories created"});
+        categoryItems.push({text: "Keine Kategorien vorhanden"});
       } else {
         categoryItems.push(...categories.map((c) =>  { return { text: c.name , key: c.id! } as ListItem }));
       }
